@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>F1 — Points Editor & Probability Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="https://www.formula1.com/assets/home/_next/static/media/f1-logo-32.51521830.ico"/>
+    <style>
+    :root{
+  --bg: #f3f6fb;           /* page background */
+  --card: #ffffff;         /* card background */
+  --muted: #6b7280;        /* secondary text */
+  --accent: #0b63ff;       /* primary accent */
+  --accent2: #7c3aed;      /* secondary accent */
+  --text: #0f1724;         /* main text */
+  --header-bg: #0f1724;    /* table header bg (light mode) */
+  --header-text: #ffffff;  /* table header text */
+  --border: #e6edf6;
+  --surface: #f8fbff;
+  --success: #16a34a;
+  --danger: #ef4444;
+  --muted-2: #9aa3b2;
+}
+
+/* Base */
+html,body{height:100%}
+body {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: var(--bg);
+  margin: 0;
+  padding: 24px;
+  color: var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height: 1.45;
+  font-size: 15px;
+}
+
+/* Container + header */
+.container { max-width:1200px; margin:0 auto; }
+header {
+  display:flex; align-items:center; gap:16px;
+  margin-bottom:20px; padding:14px 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
+  border-radius:12px; border:1px solid var(--border);
+}
+h1 { margin:0; font-size:20px; font-weight:700; color:var(--text); }
+
+/* Tabs */
+.tabs { display:flex; gap:8px; }
+.tab {
+  padding:8px 14px; border-radius:10px; border:1px solid transparent;
+  background:transparent; color:var(--muted); cursor:pointer; font-weight:600;
+}
+.tab.active {
+  background: linear-gradient(90deg,var(--accent),var(--accent2));
+  color:#fff; box-shadow: 0 6px 18px rgba(11,99,255,0.14);
+}
+
+/* Layout & cards */
+.layout { display:flex; gap:20px; align-items:flex-start; }
+.card {
+  background:var(--card); border-radius:12px; padding:18px;
+  box-shadow: 0 6px 18px rgba(19,35,51,0.04);
+  border: 1px solid var(--border);
+}
+
+/* Controls */
+.controls { display:flex; gap:12px; align-items:center; padding:10px; background:var(--surface); border-radius:10px; }
+.btn { padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:600; border:1px solid transparent; }
+.btn.primary { background: linear-gradient(90deg,var(--accent),var(--accent2)); color:#fff; box-shadow: 0 6px 14px rgba(37,99,235,0.12); }
+.btn.secondary { background:transparent; color:var(--text); border:1px solid var(--border); }
+.btn:focus{ outline: 3px solid rgba(11,99,255,0.12); outline-offset:2px; }
+
+/* Table */
+table { width:100%; border-collapse:collapse; margin-top:12px; }
+thead th {
+  background: var(--header-bg);
+  color: var(--header-text);
+  padding:12px 14px; text-align:left; font-weight:700; font-size:13px;
+  position:sticky; top:0; z-index:5;
+  border-bottom: 2px solid rgba(255,255,255,0.04);
+}
+tbody td { padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+tbody tr:hover td { background: rgba(11,99,255,0.02); }
+
+/* Driver cell */
+td > img { height:22px; width:22px; object-fit:contain; margin-right:10px; border-radius:4px; vertical-align:middle; }
+.driver-code { font-weight:700; color:var(--accent); margin-right:8px; }
+.team-name { display:block; color:var(--muted); font-size:13px; margin-top:4px; }
+
+/* Selects */
+select {
+  padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:#fff; color:var(--text);
+  min-width:86px; box-shadow:none;
+}
+select:focus { border-color:var(--accent); box-shadow:0 6px 18px rgba(11,99,255,0.08); outline:none; }
+
+/* Small text */
+.small-note { font-size:13px; color:var(--muted); display:block; }
+.pts { font-weight:700; color:var(--text); }
+
+/* Right panel styling */
+#driverStandings, #constructorStandings { margin-top:8px; }
+.stat-table { width:100%; border-radius:8px; overflow:hidden; }
+
+/* Delta column */
+td .delta { color:var(--muted-2); font-weight:600; }
+
+/* Responsive tweaks */
+@media (max-width:1000px) {
+  .layout { flex-direction:column; }
+  header { padding:12px; }
+  .card { padding:12px; }
+}
+@media (max-width:700px) {
+  body { padding:12px; font-size:14px; }
+  header { flex-direction:column; align-items:flex-start; gap:10px; padding:12px; }
+  .tabs { width:100%; display:flex; gap:8px; }
+  select { min-width:64px; font-size:13px; }
+  thead th { font-size:12px; padding:8px; }
+  tbody td { padding:8px; font-size:13px; }
+  td > img { height:18px; width:18px; margin-right:8px; }
+}
+
+/* Dark mode - high contrast accessible colors */
+body.dark-mode {
+  --bg: #0b0e11;
+  --card: #0f1417;
+  --muted: #9aa3b2;
+  --accent: #5ea8ff;
+  --accent2: #9b7bff;
+  --text: #e6eef8;
+  --header-bg: #0e1720;
+  --header-text: #e6eef8;
+  --border: rgba(255,255,255,0.04);
+  --surface: #0b1216;
+  --muted-2: #9aa3b2;
+}
+body.dark-mode header { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-color: rgba(255,255,255,0.03); }
+body.dark-mode .btn.secondary { background:transparent; border-color: rgba(255,255,255,0.05); color:var(--text); }
+body.dark-mode select { background:#0b0f12; color:var(--text); border-color: rgba(255,255,255,0.04); }
+
+/* Accessibility helpers */
+a, button, select { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+  </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>F1 — Points Editor & Probability Simulator</h1>
+            <div class="tabs">
+                <button class="tab active" id="tabEditor">Points Editor</button>
+                <button class="tab" id="tabSim">Probability Simulator</button>
+            </div>
+
+            <!-- Dark mode toggle -->
+            <button class="btn secondary" id="darkModeBtn" title="Toggle dark mode" style="margin-left:auto;">
+              🌙 Dark
+            </button>
+        </header>
+
+        <div class="layout">
+            <div class="card" id="editorCard">
+                <div class="controls">
+                    <button class="btn primary" id="resetBtn">Reset all predictions</button>
+                    <button class="btn secondary" id="randomBtn">Randomize</button>
+                </div>
+                <table>
+                    <thead id="driversHead">
+                        <!-- header will be built dynamically from EVENTS -->
+                    </thead>
+                    <tbody id="driversBody">
+                        <!-- Drivers will be populated here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card" id="simCard" style="display: none;">
+                <div class="controls">
+                    <label>Simulation runs: <input type="number" id="simRuns" value="1000" min="100" max="10000"></label>
+                    <button class="btn primary" id="runSimBtn">Run Simulation</button>
+                </div>
+                <div id="simStatus"></div>
+                <div id="simSummary" style="margin-top:10px"></div>
+                <div id="simTable" class="stat-table" style="margin-top:10px">
+                    <!-- Simulation results will be populated here -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Overview — Standings</h2>
+                <div id="driverStandings">
+                    <!-- Driver standings will be populated here -->
+                </div>
+                <div id="constructorStandings">
+                    <!-- Constructor standings will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+  // --- constants
+const RACE_POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
+const SPRINT_POINTS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1]);
+
+// --- base data
+const DRIVERS = [
+    // Red Bull
+    {code:'VER', name:'Max Verstappen', team:'Red Bull', base:321},
+    {code:'TSU', name:'Yuki Tsunoda', team:'Red Bull', base:28},
+    // McLaren  
+    {code:'PIA', name:'Oscar Piastri', team:'McLaren', base:356},
+    {code:'NOR', name:'Lando Norris', team:'McLaren', base:357},
+    // Mercedes
+    {code:'RUS', name:'George Russell', team:'Mercedes', base:258},
+    {code:'ANT', name:'Kimi Antonelli', team:'Mercedes', base:97},
+    // Ferrari
+    {code:'LEC', name:'Charles Leclerc', team:'Ferrari', base:210},
+    {code:'HAM', name:'Lewis Hamilton', team:'Ferrari', base:146},
+    // Williams
+    {code:'ALB', name:'Alexander Albon', team:'Williams', base:73},
+    {code:'SAI', name:'Carlos Sainz', team:'Williams', base:38},
+    // Racing Bulls
+    {code:'HAD', name:'Isack Hadjar', team:'Racing Bulls', base:39},
+    {code:'LAW', name:'Liam Lawson', team:'Racing Bulls', base:30},
+    // Alpine
+    {code:'GAS', name:'Pierre Gasly', team:'Alpine', base:20}, 
+    {code:'COL', name:'Franco Colapinto', team:'Alpine', base:0},
+    // Haas
+    {code:'OCO', name:'Esteban Ocon', team:'Haas', base:30},
+    {code:'BEA', name:'Oliver Bearman', team:'Haas', base:32},
+    // Kick Sauber
+    {code:'HUL', name:'Nico Hulkenberg', team:'Kick Sauber', base:41},
+    {code:'BOR', name:'Gabriel Bortoleto', team:'Kick Sauber', base:19},
+    // Aston Martin
+    {code:'ALO', name:'Fernando Alonso', team:'Aston Martin', base:37},
+    {code:'STR', name:'Lance Stroll', team:'Aston Martin', base:32}
+  ].sort((a,b) => b.base - a.base);
+
+const CONSTRUCTORS = ['McLaren','Ferrari','Red Bull','Mercedes','Williams','Haas','Racing Bulls','Alpine','Kick Sauber','Aston Martin'];
+
+const EVENTS = [
+    {id:'bra_sprint', label:'BRA Sprint', type:'sprint'},
+    {id:'bra', label:'BRA GP', type:'race'},
+    {id:'la', label:'LA GP', type:'race'},
+    {id:'qtr_sprint', label:'QTR Sprint', type:'sprint'},
+    {id:'qtr', label:'QTR GP', type:'race'},
+    {id:'uae', label:'UAE GP', type:'race'}
+];
+
+const TEAM_LOGOS = {
+  "McLaren": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/mclaren/2025mclarenlogo.webp",
+  "Red Bull": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/redbullracing/2025redbullracinglogo.webp",
+  "Mercedes": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/mercedes/2025mercedeslogo.webp",
+  "Ferrari": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/ferrari/2025ferrarilogo.webp",
+  "Aston Martin": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/astonmartin/2025astonmartinlogo.webp",
+  "Williams": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/williams/2025williamslogo.webp",
+  "Racing Bulls": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/racingbulls/2025racingbullslogo.webp",
+  "Haas": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/haasf1team/2025haasf1teamlogo.webp",
+  "Alpine": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/alpine/2025alpinelogo.webp",
+  "Kick Sauber": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/kicksauber/2025kicksauberlogo.webp"
+};
+
+// --- app state (single declaration)
+let state = {};
+let lastSimResult = null;
+
+// --- helpers for options
+function createRaceOptions(){
+  const opts = [{v:0,t:'0'}];
+  for(let i=0;i<RACE_POINTS.length;i++) opts.push({v:RACE_POINTS[i], t:`P${i+1} (${RACE_POINTS[i]} pts)`});
+  return opts;
+}
+function createSprintOptions(){
+  const opts = [{v:0,t:'0'}];
+  for(let i=0;i<SPRINT_POINTS.length;i++) opts.push({v:SPRINT_POINTS[i], t:`P${i+1} (${SPRINT_POINTS[i]} pts)`});
+  return opts;
+}
+const raceOpts = createRaceOptions();
+const sprintOpts = createSprintOptions();
+
+// --- init / UI building
+function initializeState() {
+  state = {};
+  DRIVERS.forEach(d => {
+      state[d.code] = {
+          base: d.base,
+          added: {}
+      };
+      EVENTS.forEach(e => {
+          state[d.code].added[e.id] = 0;
+      });
+  });
+}
+
+function initEditor() {
+  const tbody = document.getElementById('driversBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  // Sort drivers by current standings (base + added)
+  const driversArr = DRIVERS.map(d => {
+    const added = Object.values(state[d.code]?.added || {}).reduce((a, b) => a + b, 0);
+    return { ...d, added, total: d.base + added };
+  }).sort((a, b) => b.total - a.total || a.code.localeCompare(b.code));
+
+  const leaderTotal = driversArr.length ? driversArr[0].total : 0;
+
+  driversArr.forEach(d => {
+    if (!state[d.code]) {
+      state[d.code] = { base: d.base, added: {} };
+      EVENTS.forEach(e => state[d.code].added[e.id] = 0);
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <img src="${TEAM_LOGOS[d.team] || ''}" alt="${d.team}" style="height:20px;width:20px;object-fit:contain;vertical-align:middle;margin-right:8px;">
+        <b>${d.code}</b>
+        <span class='team-name'>${d.name} <span style="color:#aaa;font-size:12px;">(${d.team})</span></span>
+      </td>
+    `;
+    EVENTS.forEach(ev => {
+      const td = document.createElement('td');
+      const sel = document.createElement('select');
+      sel.dataset.code = d.code;
+      sel.dataset.event = ev.id;
+      const opts = ev.type === 'race' ? raceOpts : sprintOpts;
+      opts.forEach(o => {
+        const op = document.createElement('option');
+        op.value = o.v;
+        op.text = o.t;
+        sel.appendChild(op);
+      });
+      sel.value = state[d.code].added[ev.id] || 0;
+      sel.addEventListener('change', onSelectChange);
+      td.appendChild(sel);
+      tr.appendChild(td);
+    });
+    const tdTotal = document.createElement('td');
+    tdTotal.innerHTML = `<div class='small-note' id='added-${d.code}'>+${d.added}</div><div class='pts' id='total-${d.code}'>${d.total} pts</div>`;
+    tr.appendChild(tdTotal);
+
+    // Delta column
+    const delta = d.total === leaderTotal ? '—' : `-${leaderTotal - d.total}`;
+    const tdDelta = document.createElement('td');
+    tdDelta.innerHTML = `<span class="small-note">${delta}</span>`;
+    tr.appendChild(tdDelta);
+
+    tbody.appendChild(tr);
+  });
+
+  enforceAllUnique();
+  updateTotals();
+}
+
+// selection change
+function onSelectChange(e) {
+  const sel = e.currentTarget;
+  const code = sel.dataset.code;
+  const ev = sel.dataset.event;
+  const val = Number(sel.value) || 0;
+
+  if (!state[code]) state[code] = {base:0, added:{}};
+  state[code].added[ev] = val;
+  enforceUniqueForEvent(ev);
+  updateTotals();
+}
+
+// uniqueness enforcement
+function enforceUniqueForEvent(eventId){
+  const selects = Array.from(document.querySelectorAll(`select[data-event="${eventId}"]`));
+  const selected = new Set();
+  selects.forEach(s=>{ const v=Number(s.value); if(v!==0) selected.add(v); });
+  selects.forEach(s=>{
+    const myVal = Number(s.value);
+    Array.from(s.options).forEach(opt=>{
+      const v = Number(opt.value);
+      if(v === 0 || v === myVal) opt.disabled = false;
+      else opt.disabled = selected.has(v);
+    });
+  });
+}
+function enforceAllUnique(){ EVENTS.forEach(e=> enforceUniqueForEvent(e.id)); }
+
+// totals / standings
+function updateTotals() {
+  if (!DRIVERS || !state) return;
+  DRIVERS.forEach(d => {
+      if (!state[d.code]) return;
+      const addedSum = Object.values(state[d.code].added || {}).reduce((a,b) => a+b, 0);
+      const total = (state[d.code].base || 0) + addedSum;
+      const addedEl = document.getElementById('added-'+d.code);
+      const totalEl = document.getElementById('total-'+d.code);
+      if (addedEl) addedEl.innerText = '+' + addedSum;
+      if (totalEl) totalEl.innerText = total + ' pts';
+  });
+  updateConstructorsAndDriversStandings();
+}
+
+function updateConstructorsAndDriversStandings(){
+  const cons = {};
+  CONSTRUCTORS.forEach(c=> cons[c] = {base:0, added:0, total:0});
+  DRIVERS.forEach(d=>{
+    const addedSum = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
+    if(!cons[d.team]) cons[d.team] = {base:0, added:0, total:0};
+    cons[d.team].base += d.base;
+    cons[d.team].added += addedSum;
+    cons[d.team].total += d.base + addedSum;
+  });
+
+  // drivers
+  const driversArr = DRIVERS.map(d=>{
+    const added = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
+    return {code:d.code, name:d.name, team:d.team, base:d.base, added, total: d.base + added};
+  }).sort((a,b)=>b.total-a.total || a.code.localeCompare(b.code));
+
+  const leaderTotal = driversArr.length ? driversArr[0].total : 0;
+
+  let html = `
+    <div style="margin-bottom:18px;">
+      <div style="font-weight:600;font-size:16px;margin-bottom:6px;">Drivers (top)</div>
+      <table style="width:100%">
+        <thead>
+          <tr><th>Pos</th><th>Driver</th><th style="text-align:right">Total</th><th style="text-align:right">Delta</th></tr>
+        </thead>
+        <tbody>
+          ${driversArr.map((d,i)=>{
+            const delta = d.total === leaderTotal ? '—' : `-${leaderTotal - d.total}`;
+            return `
+            <tr>
+              <td>${i+1}</td>
+              <td><b>${d.code}</b> 
+                <span class='team-name'>
+                  <img src="${TEAM_LOGOS[d.team] || ''}" alt="${d.team}" style="height:16px;vertical-align:middle;margin-right:4px;">
+                  ${d.team}
+                </span>
+                <div class='small-note'>+${d.added}</div>
+              </td>
+              <td style='text-align:right'><b>${d.total} pts</b></td>
+              <td style='text-align:right'><span class="small-note">${delta}</span></td>
+            </tr>
+          `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('driverStandings').innerHTML = html;
+
+  // constructors
+  const consArr = Object.keys(cons).map(k=>({team:k, base:cons[k].base, added:cons[k].added, total:cons[k].total})).sort((a,b)=>b.total-a.total);
+  const consLeader = consArr.length ? consArr[0].total : 0;
+
+  let html2 = `
+    <div style="margin-top:18px;">
+      <div style="font-weight:600;fontsize:16px;margin-bottom:6px;">Constructors</div>
+      <table style="width:100%">
+        <thead>
+          <tr>
+            <th>Constructor</th>
+            <th style="text-align:right">Total</th>
+            <th style="text-align:right">Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${consArr.map((c,i)=>{
+            const delta = c.total === consLeader ? '—' : `-${consLeader - c.total}`;
+            return `
+              <tr>
+                <td>
+                  <img src="${TEAM_LOGOS[c.team] || ''}" alt="${c.team}" style="height:18px;vertical-align:middle;margin-right:4px;">
+                  <b>${i+1}. ${c.team}</b>
+                </td>
+                <td style="text-align:right">${Math.round(c.total)} pts <div class='small-note'>+${Math.round(c.added)}</div></td>
+                <td style="text-align:right"><span class="small-note">${delta}</span></td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('constructorStandings').innerHTML = html2;
+}
+
+// reset / randomize
+function resetAll(){
+  document.querySelectorAll('#driversBody select').forEach(s=> s.value = 0);
+  DRIVERS.forEach(d=> EVENTS.forEach(e=> state[d.code].added[e.id]=0));
+  enforceAllUnique();
+  updateTotals();
+}
+
+function randomize(biasStrength = 1.4, noise = 0.18, topCount = 6) {
+  // bias: make topCount drivers equally likely to score; others get reduced weight
+  EVENTS.forEach(ev => {
+    const points = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+    const codes = DRIVERS.map(d => d.code);
+
+    // ensure state shape
+    codes.forEach(c => {
+      if (!state[c]) state[c] = { base: 0, added: {} };
+      if (!state[c].added) state[c].added = {};
+    });
+
+    // re-enable all options for this event
+    const selects = Array.from(document.querySelectorAll(`select[data-event="${ev.id}"]`));
+    selects.forEach(s => Array.from(s.options).forEach(opt => opt.disabled = false));
+
+    // compute current totals
+    const totals = {};
+    codes.forEach(c => {
+      const added = Object.values(state[c].added || {}).reduce((a, b) => a + b, 0);
+      totals[c] = Math.max(0, (state[c].base || 0) + added);
+    });
+
+    // determine top drivers (by current totals)
+    const sortedByTotal = [...codes].sort((a, b) => totals[b] - totals[a]);
+    const topCodes = new Set(sortedByTotal.slice(0, Math.min(topCount, sortedByTotal.length)));
+
+    // scale top weight relative to average of top group so they're comparable to others
+    const avgTop = sortedByTotal.slice(0, Math.min(topCount, sortedByTotal.length))
+      .reduce((s, c) => s + totals[c], 0) / Math.max(1, Math.min(topCount, sortedByTotal.length));
+    const topWeightBase = Math.pow(avgTop + 1, biasStrength);
+
+    // factor to reduce non-top weights (tweakable)
+    const otherFactor = 0.35;
+
+    // build weights: equal base for top drivers, reduced for others, plus small noise
+    const weights = codes.map(c => {
+      const noiseFactor = 1 + (Math.random() - 0.5) * noise;
+      if (topCodes.has(c)) {
+        return Math.max(0.0001, topWeightBase * noiseFactor);
+      } else {
+        return Math.max(0.0001, Math.pow(totals[c] + 1, biasStrength) * noiseFactor * otherFactor);
+      }
+    });
+
+    // produce weighted ordering and assign points
+    const order = weightedShuffle(codes, weights);
+    order.forEach((code, index) => {
+      const pts = points[index] || 0;
+      state[code].added[ev.id] = pts;
+      const select = document.querySelector(`select[data-code="${code}"][data-event="${ev.id}"]`);
+      if (select) {
+        const opt = Array.from(select.options).find(o => Number(o.value) === pts);
+        if (opt) opt.disabled = false;
+        select.value = pts;
+      }
+    });
+  });
+
+  enforceAllUnique();
+  updateTotals();
+}
+
+// --- simulator helpers
+function countRemainingEvents(){
+  let races = 0, sprints = 0;
+  EVENTS.forEach(ev=>{
+    const sum = DRIVERS.reduce((acc,d)=> acc + (state[d.code].added[ev.id]||0), 0);
+    if(sum === 0){ if(ev.type==='race') races++; else if(ev.type==='sprint') sprints++; }
+  });
+  return {races, sprints};
+}
+
+function weightedShuffle(items, weights){
+  const result = [];
+  const tmpItems = [...items];
+  const tmpWeights = [...weights];
+
+  while (tmpItems.length > 0) {
+      const totalWeight = tmpWeights.reduce((sum, w) => sum + w, 0);
+      let random = Math.random() * totalWeight;
+      let index = 0;
+      while (random > 0 && index < tmpWeights.length) {
+          random -= tmpWeights[index];
+          index++;
+      }
+      index = Math.max(0, index - 1);
+      result.push(tmpItems[index]);
+      tmpItems.splice(index, 1);
+      tmpWeights.splice(index, 1);
+  }
+  return result;
+}
+
+function runSimulationOnce(params) {
+  const driverCodes = DRIVERS.map(d => d.code);
+  const base = {}; const weights = {};
+  DRIVERS.forEach(d => {
+      const added = Object.values(state[d.code].added || {}).reduce((a,b) => a+b, 0);
+      base[d.code] = d.base + added;
+      weights[d.code] = Math.pow(Math.max(1, base[d.code]), 1.2) + (params.baseline || 0.1);
+  });
+  const teamBase = {};
+  CONSTRUCTORS.forEach(t => teamBase[t] = 0);
+  DRIVERS.forEach(d => teamBase[d.team] = (teamBase[d.team]||0) + base[d.code]);
+
+  const dpts = {...base}; const tpts = {...teamBase};
+
+  for(let r = 0; r < (params.races||0); r++) {
+      const raceWeights = driverCodes.map(code => Math.max(0.01, weights[code]));
+      const order = weightedShuffle(driverCodes, raceWeights);
+      for(let i = 0; i < Math.min(10, order.length); i++) {
+          const code = order[i];
+          dpts[code] += RACE_POINTS[i] || 0;
+          const team = DRIVERS.find(d => d.code === code).team;
+          tpts[team] = (tpts[team] || 0) + (RACE_POINTS[i]||0);
+      }
+  }
+
+  for(let r = 0; r < (params.sprints||0); r++) {
+      const sprintWeights = driverCodes.map(code => Math.max(0.01, weights[code]));
+      const order = weightedShuffle(driverCodes, sprintWeights);
+      for(let i = 0; i < Math.min(8, order.length); i++) {
+          const code = order[i];
+          dpts[code] += SPRINT_POINTS[i] || 0;
+          const team = DRIVERS.find(d => d.code === code).team;
+          tpts[team] = (tpts[team] || 0) + (SPRINT_POINTS[i]||0);
+      }
+  }
+
+  return {
+      finalDrivers: Object.entries(dpts).map(([code, pts]) => ({code, pts})).sort((a,b)=>b.pts-a.pts),
+      finalTeams: Object.entries(tpts).map(([team, pts]) => ({team, pts})).sort((a,b)=>b.pts-a.pts)
+  };
+}
+
+function setLoading(isLoading) {
+  const runBtn = document.getElementById('runSimBtn');
+  if (runBtn) {
+      runBtn.disabled = isLoading;
+      runBtn.innerText = isLoading ? 'Running...' : 'Run Simulation';
+  }
+}
+
+async function runMonteCarlo(params) {
+  setLoading(true);
+  try {
+      if ((params.runs||0) < 100) throw new Error('Minimum 100 simulation runs required');
+      const driverCodes = DRIVERS.map(d => d.code);
+      const teamNames = Array.from(new Set(DRIVERS.map(d => d.team)));
+      const driverCounts = {}; const teamCounts = {};
+      driverCodes.forEach(c => driverCounts[c] = {champ:0,top2:0,top3:0});
+      teamNames.forEach(t => teamCounts[t] = {champ:0,top2:0,top3:0});
+
+      const batchSize = 100;
+      for(let s = 0; s < params.runs; s += batchSize) {
+          const currentBatch = Math.min(batchSize, params.runs - s);
+          for(let i = 0; i < currentBatch; i++) {
+              const result = runSimulationOnce(params);
+              if (result.finalDrivers[0]) { driverCounts[result.finalDrivers[0].code].champ++; driverCounts[result.finalDrivers[0].code].top2++; driverCounts[result.finalDrivers[0].code].top3++; }
+              if (result.finalDrivers[1]) { driverCounts[result.finalDrivers[1].code].top2++; driverCounts[result.finalDrivers[1].code].top3++; }
+              if (result.finalDrivers[2]) { driverCounts[result.finalDrivers[2].code].top3++; }
+
+              if (result.finalTeams[0]) { teamCounts[result.finalTeams[0].team].champ++; teamCounts[result.finalTeams[0].team].top2++; teamCounts[result.finalTeams[0].team].top3++; }
+              if (result.finalTeams[1]) { teamCounts[result.finalTeams[1].team].top2++; teamCounts[result.finalTeams[1].team].top3++; }
+              if (result.finalTeams[2]) { teamCounts[result.finalTeams[2].team].top3++; }
+          }
+          document.getElementById('simStatus').innerText = `Running simulations... ${Math.min(s + batchSize, params.runs)}/${params.runs}`;
+          await new Promise(resolve=>setTimeout(resolve,0));
+      }
+
+      const driverStats = {}; const teamStats = {};
+      driverCodes.forEach(code=> driverStats[code] = { champ: (driverCounts[code].champ/params.runs)*100, top2:(driverCounts[code].top2/params.runs)*100, top3:(driverCounts[code].top3/params.runs)*100 });
+      teamNames.forEach(team=> teamStats[team] = { champ: (teamCounts[team].champ/params.runs)*100, top2:(teamCounts[team].top2/params.runs)*100, top3:(teamCounts[team].top3/params.runs)*100 });
+
+      lastSimResult = {driverStats, teamStats};
+      renderSimResults();
+      document.getElementById('simStatus').innerText = 'Simulation complete';
+  } catch (err) {
+      document.getElementById('simStatus').innerText = `Error: ${err.message}`;
+      console.error(err);
+  } finally {
+      setLoading(false);
+  }
+}
+
+function renderSimResults(){
+  if(!lastSimResult) return;
+  const ds = lastSimResult.driverStats; const ts = lastSimResult.teamStats;
+  let html = '<table class="stat-table" style="width:100%"><thead><tr><th>Driver</th><th>Team</th><th>Champion</th><th>Top 2</th><th>Top 3</th></tr></thead><tbody>';
+  const driversWithPts = DRIVERS.map(d=>{ const added = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0); return {code:d.code, team:d.team, pts:d.base+added, stats:ds[d.code]||{champ:0,top2:0,top3:0}}; });
+  driversWithPts.sort((a,b)=>b.stats.champ-a.stats.champ);
+  driversWithPts.forEach(d=> html += `
+  <tr>
+    <td>
+      <img src="${TEAM_LOGOS[d.team] || ''}" alt="${d.team}" style="height:16px;vertical-align:middle;margin-right:4px;">
+      ${d.code}
+    </td>
+    <td>${d.team}</td>
+    <td>${d.stats.champ.toFixed(1)}%</td>
+    <td>${d.stats.top2.toFixed(1)}%</td>
+    <td>${d.stats.top3.toFixed(1)}%</td>
+  </tr>`);
+html += '</tbody></table>';
+document.getElementById('simTable').innerHTML = html;
+
+// Constructors table
+let html2 = '<table class="stat-table" style="width:100%;margin-top:10px"><thead><tr><th>Constructor</th><th>Champion</th><th>Top 2</th><th>Top 3</th></tr></thead><tbody>';
+const consWithPts = Object.keys(ts).map(t=>({team:t, stats:ts[t]})).sort((a,b)=>b.stats.champ-a.stats.champ);
+consWithPts.forEach(c=> html2 += `
+  <tr>
+    <td>
+      <img src="${TEAM_LOGOS[c.team] || ''}" alt="${c.team}" style="height:18px;vertical-align:middle;margin-right:4px;">
+      ${c.team}
+    </td>
+    <td>${c.stats.champ.toFixed(1)}%</td>
+    <td>${c.stats.top2.toFixed(1)}%</td>
+    <td>${c.stats.top3.toFixed(1)}%</td>
+  </tr>`);
+html2 += '</tbody></table>';
+document.getElementById('simTable').innerHTML += html2;
+}
+
+// build table header from EVENTS (removes hard-coded MEX column)
+function buildTableHeader() {
+  const thead = document.getElementById('driversHead');
+  if (!thead) return;
+  let html = '<tr><th>Driver</th>';
+  EVENTS.forEach(ev => {
+    html += `<th>${ev.label}</th>`;
+  });
+  html += '<th>Added / Total</th><th>Delta</th></tr>'; // Add Delta column
+  thead.innerHTML = html;
+}
+
+// --- bootstrap after DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  initializeState();
+  buildTableHeader();
+  initEditor();
+  attachEventListeners();
+  updateTotals();
+});
+
+function switchTab(tabName) {
+  const editorCard = document.getElementById('editorCard');
+  const simCard = document.getElementById('simCard');
+  const tabEditor = document.getElementById('tabEditor');
+  const tabSim = document.getElementById('tabSim');
+  if (!editorCard || !simCard || !tabEditor || !tabSim) return;
+
+  if (tabName === 'sim') {
+    tabSim.classList.add('active');
+    tabEditor.classList.remove('active');
+    editorCard.style.display = 'none';
+    simCard.style.display = 'block';
+  } else {
+    tabEditor.classList.add('active');
+    tabSim.classList.remove('active');
+    editorCard.style.display = 'block';
+    simCard.style.display = 'none';
+  }
+}
+
+function attachEventListeners() {
+  document.getElementById('tabEditor').addEventListener('click', () => switchTab('editor'));
+  document.getElementById('tabSim').addEventListener('click', () => switchTab('sim'));
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
+  document.getElementById('randomBtn').addEventListener('click', () => randomize());
+  document.getElementById('runSimBtn').addEventListener('click', () => {
+    const runs = Math.min(Math.max(parseInt(document.getElementById('simRuns').value) || 1000, 100), 10000);
+    const rem = countRemainingEvents();
+    runMonteCarlo({ races: rem.races, sprints: rem.sprints, runs, baseline: 5 });
+  });
+  document.getElementById('simRuns').addEventListener('input', function(e){
+    const value = parseInt(e.target.value);
+    if (isNaN(value) || value < 100) e.target.value = 100;
+    else if (value > 10000) e.target.value = 10000;
+  });
+
+  // dark mode toggle (guarded)
+  const darkBtn = document.getElementById('darkModeBtn');
+  if (darkBtn) {
+    darkBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('f1-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
+      darkBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark';
+    });
+  }
+
+  // On load, restore preference
+  if (localStorage.getItem('f1-dark-mode') === '1') {
+    document.body.classList.add('dark-mode');
+    if (darkBtn) darkBtn.textContent = '☀️ Light';
+  }
+}
+    </script>
+</body>
+</html>
