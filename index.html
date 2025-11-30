@@ -252,23 +252,23 @@ const SPRINT_POINTS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1]);
 // --- base data
 const DRIVERS = [
     // Red Bull
-    {code:'VER', name:'Max Verstappen', team:'Red Bull', base:366},
-    {code:'TSU', name:'Yuki Tsunoda', team:'Red Bull', base:28},
+    {code:'VER', name:'Max Verstappen', team:'Red Bull', base:396},
+    {code:'TSU', name:'Yuki Tsunoda', team:'Red Bull', base:33},
     // McLaren  
-    {code:'PIA', name:'Oscar Piastri', team:'McLaren', base:366},
-    {code:'NOR', name:'Lando Norris', team:'McLaren', base:390},
+    {code:'PIA', name:'Oscar Piastri', team:'McLaren', base:392},
+    {code:'NOR', name:'Lando Norris', team:'McLaren', base:408},
     // Mercedes
-    {code:'RUS', name:'George Russell', team:'Mercedes', base:294},
-    {code:'ANT', name:'Kimi Antonelli', team:'Mercedes', base:137},
+    {code:'RUS', name:'George Russell', team:'Mercedes', base:309},
+    {code:'ANT', name:'Kimi Antonelli', team:'Mercedes', base:150},
     // Ferrari
-    {code:'LEC', name:'Charles Leclerc', team:'Ferrari', base:226},
+    {code:'LEC', name:'Charles Leclerc', team:'Ferrari', base:230},
     {code:'HAM', name:'Lewis Hamilton', team:'Ferrari', base:152},
     // Williams
     {code:'ALB', name:'Alexander Albon', team:'Williams', base:73},
-    {code:'SAI', name:'Carlos Sainz', team:'Williams', base:48},
+    {code:'SAI', name:'Carlos Sainz', team:'Williams', base:64},
     // Racing Bulls
     {code:'HAD', name:'Isack Hadjar', team:'Racing Bulls', base:51},
-    {code:'LAW', name:'Liam Lawson', team:'Racing Bulls', base:36},
+    {code:'LAW', name:'Liam Lawson', team:'Racing Bulls', base:38},
     // Alpine
     {code:'GAS', name:'Pierre Gasly', team:'Alpine', base:22}, 
     {code:'COL', name:'Franco Colapinto', team:'Alpine', base:0},
@@ -279,7 +279,7 @@ const DRIVERS = [
     {code:'HUL', name:'Nico Hulkenberg', team:'Kick Sauber', base:49},
     {code:'BOR', name:'Gabriel Bortoleto', team:'Kick Sauber', base:19},
     // Aston Martin
-    {code:'ALO', name:'Fernando Alonso', team:'Aston Martin', base:40},
+    {code:'ALO', name:'Fernando Alonso', team:'Aston Martin', base:48},
     {code:'STR', name:'Lance Stroll', team:'Aston Martin', base:32}
   ].sort((a,b) => b.base - a.base);
 
@@ -287,7 +287,6 @@ const CONSTRUCTORS = ['McLaren','Ferrari','Red Bull','Mercedes','Williams','Haas
 
 const EVENTS = [
     {id:'qtr_sprint', label:'QTR Sprint', type:'sprint'},
-    {id:'qtr', label:'QTR GP', type:'race'},
     {id:'uae', label:'UAE GP', type:'race'}
 ];
 
@@ -1055,5 +1054,6 @@ function attachEventListeners() {
     </script>
 </body>
 </html>
+
 
 
