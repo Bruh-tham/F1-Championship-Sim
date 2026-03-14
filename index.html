@@ -5,188 +5,197 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>F1 — Points Editor & Probability Simulator</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/x-icon" href="https://www.formula1.com/assets/home/_next/static/media/f1-logo-32.51521830.ico"/>
+  <link rel="icon" type="image/x-icon" href="https://www.formula1.com/assets/home/_next/static/media/f1-logo-180.1db9e85b.png"/>
   <style>
+  /* ===================== COLORS ===================== */
   :root {
     --bg: #f3f6fb;
     --card: #ffffff;
+    --surface: #f8fbff;
+    --border: #d1d5db;
+    --text: #0f1724;
     --muted: #6b7280;
     --accent: #0b63ff;
     --accent2: #7c3aed;
-    --text: #0f1724;
-    --header-bg: #0f1724;
-    --header-text: #ffffff;
-    --border: #e6edf6;
-    --surface: #f8fbff;
-    --success: #16a34a;
-    --danger: #ef4444;
-    --muted-2: #9aa3b2;
+    --header-bg: #1e293b; 
+    --header-text: #f8fafc; 
+    --row-hover: #f1f5f9;
   }
 
-  html,body{height:100%}
-  body {
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: var(--bg);
-    margin: 0;
-    padding: 24px;
-    color: var(--text);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    line-height: 1.45;
-    font-size: 15px;
-  }
-
-  .container { max-width:1200px; margin:0 auto; }
-  header {
-    display:flex; align-items:center; gap:16px;
-    margin-bottom:20px; padding:14px 18px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
-    border-radius:12px; border:1px solid var(--border);
-  }
-  h1 { margin:0; font-size:20px; font-weight:700; color:var(--text); }
-
-  .tabs { display:flex; gap:8px; }
-  .tab {
-    padding:8px 14px; border-radius:10px; border:1px solid transparent;
-    background:transparent; color:var(--muted); cursor:pointer; font-weight:600;
-  }
-  .tab.active {
-    background: linear-gradient(90deg,var(--accent),var(--accent2));
-    color:#fff; box-shadow: 0 6px 18px rgba(11,99,255,0.14);
-  }
-
-  .layout { display:flex; gap:20px; align-items:flex-start; }
-  .card {
-    background:var(--card); border-radius:12px; padding:18px;
-    box-shadow: 0 6px 18px rgba(19,35,51,0.04);
-    border: 1px solid var(--border);
-  }
-
-  .controls { display:flex; gap:12px; align-items:center; padding:10px; background:var(--surface); border-radius:10px; }
-  .btn { padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:600; border:1px solid transparent; }
-  .btn.primary { background: linear-gradient(90deg,var(--accent),var(--accent2)); color:#fff; box-shadow: 0 6px 14px rgba(37,99,235,0.12); }
-  .btn.secondary { background:transparent; color:var(--text); border:1px solid var(--border); }
-
-  table { width:100%; border-collapse:collapse; margin-top:12px; }
-  thead th {
-    background: var(--header-bg);
-    color: var(--header-text);
-    padding:12px 14px; text-align:left; font-weight:700; font-size:13px;
-    position:sticky; top:0; z-index:5;
-    border-bottom: 2px solid rgba(255,255,255,0.04);
-  }
-  tbody td { padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
-  tbody tr:hover td { background: rgba(11,99,255,0.02); }
-
-  td > img { height:22px; width:22px; object-fit:contain; margin-right:10px; border-radius:4px; vertical-align:middle; }
-  .driver-code { font-weight:700; color:var(--accent); margin-right:8px; }
-  .team-name { display:block; color:var(--muted); font-size:13px; margin-top:4px; }
-
-  select {
-    padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:#fff; color:var(--text);
-    min-width:86px; box-shadow:none;
-  }
-
-  .small-note { font-size:13px; color:var(--muted); display:block; }
-  .pts { font-weight:700; color:var(--text); }
-
-  /* ===================== DARK MODE (v3 high contrast) ===================== */
   body.dark-mode {
     --bg: #0b0e11;
     --card: #10161b;
-    --surface: #121a20;
-    --border: rgba(255,255,255,0.18);
-    --muted: #a0abbc;
-    --text: #e9edf5;
+    --surface: #141c23;
+    --border: rgba(255, 255, 255, 0.15);
+    --text: #f8fafc;
+    --muted: #94a3b8;
     --accent: #5ea8ff;
     --accent2: #a18bff;
-    --header-bg: #18232c;
-    --header-text: #ffffff;
+    --header-bg: #18232c; 
+    --header-text: #f8fafc;
+    --row-hover: rgba(94, 168, 255, 0.1);
   }
 
-  body.dark-mode header {
-    background: linear-gradient(180deg, #18232c, #12181f);
-    border-color: rgba(255,255,255,0.18);
+  /* ===================== BASE RESET ===================== */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
+  body { 
+    font-family: Inter, system-ui, sans-serif; 
+    background: var(--bg); color: var(--text); 
+    padding: 16px; font-size: 14px; 
+    -webkit-font-smoothing: antialiased;
   }
 
-  body.dark-mode .card {
-    background: #0e1419;
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: 0 4px 22px rgba(0,0,0,0.6);
+  /* ===================== UI ELEMENTS ===================== */
+  .container { max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  
+  header { 
+    background: var(--card); border: 1px solid var(--border); padding: 16px 20px; 
+    border-radius: 12px; display: flex; flex-wrap: wrap; gap: 16px; 
+    align-items: center; justify-content: space-between; 
+  }
+  h1 { margin: 0; font-size: 18px; font-weight: 800; color: var(--text); }
+
+  .controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .page-nav { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+  
+  .btn { 
+    padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; 
+    border: 1px solid var(--border); background: var(--card); color: var(--text); 
+  }
+  .btn.primary { 
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); 
+    color: #fff; border: none; 
+  }
+  
+  .tabs { display: flex; gap: 6px; background: var(--surface); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+  .tab { padding: 8px 16px; border-radius: 6px; border: none; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
+  .tab.active { 
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); 
+    color: #fff; 
   }
 
-  body.dark-mode .controls {
-    background: #141c23;
-    border: 1px solid rgba(255,255,255,0.1);
+  select { 
+    padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); 
+    background: var(--card); color: var(--text); font-weight: 600; font-family: inherit; cursor: pointer;
+  }
+  table select { min-width: 60px; padding: 6px; }
+
+  .small-note { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .pts { font-weight: 800; color: var(--text); }
+  .hdr-cell { position: relative; text-align: center; }
+  .hdr-cell .hdr-main { font-size: 10px; font-weight: 800; color: #ef4444; text-transform: uppercase; }
+  .hdr-cell .hdr-sub  { font-size: 13px; margin-top: 2px; font-weight: 700; }
+  .hdr-cell .hdr-flag { font-size: 16px; margin-top: 2px; }
+  .clear-btn { position: absolute; top: 0; right: 0; background: transparent; border: none; color: var(--header-text); opacity: 0.4; font-size: 16px; cursor: pointer; }
+  .clear-btn:hover { opacity: 1; color: var(--accent); }
+
+  /* ===================== DESKTOP AUTO-ADJUST LAYOUT ===================== */
+  .layout { 
+    display: flex; 
+    flex-direction: row; 
+    flex-wrap: nowrap !important; 
+    gap: 20px; 
+    width: 100%; 
+    align-items: flex-start; 
+    min-width: 0; 
+  }
+  
+  .card { 
+    background: var(--card); border: 1px solid var(--border); 
+    border-radius: 12px; padding: 16px; 
+  }
+  
+  /* Mutual Decision Math */
+  #editorCard, #simCard { 
+    flex: 0 1 auto; 
+    width: max-content; 
+    max-width: 65%; /* Keeps Editor from greedy expansion */
+    min-width: 0; 
+  }
+  
+  #standingsCard { 
+    flex: 1 1 auto; 
+    min-width: 0; 
+    max-width: 100%; /* CRITICAL: Prevents the card from breaking the screen */
   }
 
-  body.dark-mode table {
-    border-collapse: separate !important;
-    border-spacing: 0;
-    background: #131b22;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 10px;
-    overflow: hidden;
+  /* CRITICAL CONTAINED SWIPE: Side-by-side but native swipeable */
+  .standings-flex { 
+    display: flex; 
+    flex-direction: row !important; 
+    flex-wrap: nowrap !important; 
+    gap: 20px; 
+    width: 100%; /* CRITICAL: Stays within the card */
+    overflow-x: auto; /* CRITICAL: Enables horizontal swiping */
+    padding-bottom: 8px; /* Room for scrollbar */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  #driverStandings, #constructorStandings { 
+    flex: 0 0 auto; 
+    width: max-content; /* Hugs text without stretching */
+    min-width: 0; 
   }
 
-  body.dark-mode thead th {
-    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
-    color: var(--header-text);
-    border-bottom: 1px solid rgba(255,255,255,0.25);
-    box-shadow: inset 0 -1px 0 rgba(255,255,255,0.18);
-    font-weight: 700;
-    letter-spacing: 0.02em;
+  /* ===================== TABLE SYSTEM ===================== */
+  .table-responsive { 
+    width: 100%; 
+    overflow-x: auto; 
+    border: 1px solid var(--border); border-radius: 8px; 
+  }
+  
+  table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+
+  #editorCard table, #simCard table, #driverStandings table, #constructorStandings table {
+    width: max-content !important;
+    min-width: 100%;
   }
 
-  body.dark-mode tbody td {
-    background: #10171d;
-    color: var(--text);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+  thead th { 
+    background: var(--header-bg); color: var(--header-text); padding: 10px 12px; 
+    font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    position: sticky; top: 0; z-index: 5; white-space: nowrap; 
+    border-bottom: 2px solid var(--border); vertical-align: middle;
+  }
+  
+  tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* --- STICKY DRIVER COLUMN & HOVER --- */
+  #driversHead th:first-child, #driversBody td:first-child { 
+    position: sticky; left: 0; z-index: 10; border-right: 2px solid var(--border); 
+    background: var(--card); min-width: 160px; max-width: 200px; 
+  }
+  #driversHead th:first-child { z-index: 20; background: var(--header-bg); }
+
+  tbody tr:nth-child(even) td { background: rgba(0, 0, 0, 0.015); }
+  body.dark-mode tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
+
+  tbody tr:hover td { background: var(--row-hover) !important; cursor: pointer; }
+  tbody tr:hover td:first-child { background: var(--row-hover) !important; }
+
+  /* Shrink Utility Columns */
+  .standings-flex table th:nth-child(1), .standings-flex table td:nth-child(1),
+  .standings-flex table th:nth-child(3), .standings-flex table td:nth-child(3),
+  .standings-flex table th:nth-child(4), .standings-flex table td:nth-child(4) { 
+    width: 1%; white-space: nowrap; padding-left: 10px; padding-right: 10px; text-align: center;
   }
 
-  body.dark-mode tbody tr:nth-child(odd) td {
-    background: #141d25;
+  /* ===================== MOBILE OVERRIDES ===================== */
+  @media (max-width: 992px) {
+    /* Wraps layout on laptops/tablets/phones to prevent horizontal crush */
+    .layout { flex-wrap: wrap !important; }
+    #editorCard, #simCard, #standingsCard { width: 100%; flex: 1 1 100%; max-width: 100%; }
   }
 
-  body.dark-mode tbody tr:hover td {
-    background: rgba(94,168,255,0.22);
-    transition: background-color 0.12s ease-in-out;
+  @media (max-width: 768px) {
+    body { padding: 8px; }
+    header { flex-direction: column; align-items: stretch; text-align: center; }
+    .tabs { justify-content: center; }
+    #driversHead th:first-child, #driversBody td:first-child { min-width: 120px; }
+    /* Standings side-by-side swiping is already handled cleanly by .standings-flex */
   }
-
-  body.dark-mode select {
-    background: #1b2630;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: var(--text);
-  }
-
-  body.dark-mode .btn.secondary {
-    background: #1a232b;
-    border-color: rgba(255,255,255,0.2);
-    color: var(--text);
-  }
-
-  body.dark-mode .btn.primary {
-    box-shadow: 0 4px 16px rgba(94,168,255,0.4);
-  }
-
-  body.dark-mode .small-note,
-  body.dark-mode .pts {
-    color: var(--text);
-  }
-
-  body.dark-mode .stat-table {
-    background: #10171d;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 8px;
-  }
-
-  body.dark-mode * {
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  }
-
-  header, .card, .controls { position: relative; z-index: 2; }
-  .btn { pointer-events: auto; z-index: 3; }
-  #js-error-overlay { pointer-events: auto; display: none; }
   </style>
 </head>
 <body>
@@ -202,22 +211,43 @@
             <button class="btn secondary" id="darkModeBtn" title="Toggle dark mode" style="margin-left:auto;">
               🌙 Dark
             </button>
-        </header>
 
+            <!-- Hamburger menu for mobile -->
+            <button class="hamburger" id="hamburgerBtn" aria-label="Menu" style="display:none;">
+              <span></span><span></span><span></span>
+            </button>
+            <div class="mobile-menu" id="mobileMenu" style="display:none;">
+              <button class="tab" id="mobileSimTab">Probability Simulator</button>
+              <button class="tab" id="mobileStandingsTab">Standings</button>
+            </div>
+        </header>
         <div class="layout">
             <div class="card" id="editorCard">
                 <div class="controls">
                     <button class="btn primary" id="resetBtn">Reset all predictions</button>
                     <button class="btn secondary" id="randomBtn">Randomize</button>
                 </div>
-                <table>
+                <div class="page-nav" style="display: flex; align-items: center; gap: 8px;">
+                  <button id="prevPageBtn" class="btn secondary">‹ Prev</button>
+                  <select id="pageSizeSelect" style="min-width: 100px; font-weight: 600;">
+                    <option value="1">1 Race</option>
+                    <option value="2">2 Races</option>
+                    <option value="3" selected>3 Races</option>
+                    <option value="4">4 Races</option>
+                    <option value="5">5 Races</option>
+                  </select>
+                  <button id="nextPageBtn" class="btn secondary">Next ›</button>
+                </div>
+                <div class="table-responsive">
+                  <table>
                     <thead id="driversHead">
                         <!-- header will be built dynamically from EVENTS -->
                     </thead>
                     <tbody id="driversBody">
                         <!-- Drivers will be populated here by JavaScript -->
                     </tbody>
-                </table>
+                  </table>
+                </div>
             </div>
 
             <div class="card" id="simCard" style="display: none;">
@@ -234,826 +264,1048 @@
 
             <div class="card" id="standingsCard">
                 <h2>Overview — Standings</h2>
-                <div id="driverStandings">
-                    <!-- Driver standings will be populated here -->
-                </div>
-                <div id="constructorStandings">
-                    <!-- Constructor standings will be populated here -->
+                <div class="standings-flex">
+                    <div id="driverStandings"></div>
+                    <div id="constructorStandings"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-  // --- constants
-const RACE_POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
-const SPRINT_POINTS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1]);
+    // --- constants
+    const RACE_POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
+    const SPRINT_POINTS = Object.freeze([8, 7, 6, 5, 4, 3, 2, 1]);
 
-// --- base data
-const DRIVERS = [
-    // Red Bull
-    {code:'VER', name:'Max Verstappen', team:'Red Bull', base:396},
-    {code:'TSU', name:'Yuki Tsunoda', team:'Red Bull', base:33},
-    // McLaren  
-    {code:'PIA', name:'Oscar Piastri', team:'McLaren', base:392},
-    {code:'NOR', name:'Lando Norris', team:'McLaren', base:408},
-    // Mercedes
-    {code:'RUS', name:'George Russell', team:'Mercedes', base:309},
-    {code:'ANT', name:'Kimi Antonelli', team:'Mercedes', base:150},
-    // Ferrari
-    {code:'LEC', name:'Charles Leclerc', team:'Ferrari', base:230},
-    {code:'HAM', name:'Lewis Hamilton', team:'Ferrari', base:152},
-    // Williams
-    {code:'ALB', name:'Alexander Albon', team:'Williams', base:73},
-    {code:'SAI', name:'Carlos Sainz', team:'Williams', base:64},
-    // Racing Bulls
-    {code:'HAD', name:'Isack Hadjar', team:'Racing Bulls', base:51},
-    {code:'LAW', name:'Liam Lawson', team:'Racing Bulls', base:38},
-    // Alpine
-    {code:'GAS', name:'Pierre Gasly', team:'Alpine', base:22}, 
-    {code:'COL', name:'Franco Colapinto', team:'Alpine', base:0},
-    // Haas
-    {code:'OCO', name:'Esteban Ocon', team:'Haas', base:32},
-    {code:'BEA', name:'Oliver Bearman', team:'Haas', base:41},
-    // Kick Sauber
-    {code:'HUL', name:'Nico Hulkenberg', team:'Kick Sauber', base:49},
-    {code:'BOR', name:'Gabriel Bortoleto', team:'Kick Sauber', base:19},
-    // Aston Martin
-    {code:'ALO', name:'Fernando Alonso', team:'Aston Martin', base:48},
-    {code:'STR', name:'Lance Stroll', team:'Aston Martin', base:32}
-  ].sort((a,b) => b.base - a.base);
+    // --- base data
+    const DRIVERS = [
+        // Red Bull
+        {code:'VER', name:'Max Verstappen', team:'Red Bull', base:0},
+        {code:'HAD', name:'Isack Hadjar', team:'Red Bull', base:0},
+        // McLaren  
+        {code:'PIA', name:'Oscar Piastri', team:'McLaren', base:0},
+        {code:'NOR', name:'Lando Norris', team:'McLaren', base:0},
+        // Mercedes
+        {code:'RUS', name:'George Russell', team:'Mercedes', base:0},
+        {code:'ANT', name:'Kimi Antonelli', team:'Mercedes', base:0},
+        // Ferrari
+        {code:'LEC', name:'Charles Leclerc', team:'Ferrari', base:0},
+        {code:'HAM', name:'Lewis Hamilton', team:'Ferrari', base:0},
+        // Williams
+        {code:'ALB', name:'Alexander Albon', team:'Williams', base:0},
+        {code:'SAI', name:'Carlos Sainz', team:'Williams', base:0},
+        // Racing Bulls
+        {code:'LAW', name:'Liam Lawson', team:'Racing Bulls', base:0},
+        {code:'LIN', name:'Arvid Lindblad', team:'Racing Bulls', base:0},
+        // Alpine
+        {code:'GAS', name:'Pierre Gasly', team:'Alpine', base:0}, 
+        {code:'COL', name:'Franco Colapinto', team:'Alpine', base:0},
+        // Haas
+        {code:'OCO', name:'Esteban Ocon', team:'Haas', base:0},
+        {code:'BEA', name:'Oliver Bearman', team:'Haas', base:0},
+        // Audi
+        {code:'HUL', name:'Nico Hulkenberg', team:'Audi', base:0},
+        {code:'BOR', name:'Gabriel Bortoleto', team:'Audi', base:0},
+        // Aston Martin
+        {code:'ALO', name:'Fernando Alonso', team:'Aston Martin', base:0},
+        {code:'STR', name:'Lance Stroll', team:'Aston Martin', base:0},
+        // Cadillac
+        {code:'BOT', name:'Valterri Bottas', team:'Cadillac', base:0},
+        {code:'PER', name:'Sergio Perez', team:'Cadillac', base:0}
+      ].sort((a,b) => b.base - a.base);
 
-const CONSTRUCTORS = ['McLaren','Ferrari','Red Bull','Mercedes','Williams','Haas','Racing Bulls','Alpine','Kick Sauber','Aston Martin'];
+    const CONSTRUCTORS = ['McLaren','Ferrari','Red Bull','Mercedes','Williams','Haas','Racing Bulls','Alpine','Audi','Aston Martin','Cadillac'];
 
-const EVENTS = [
-    {id:'uae', label:'UAE GP', type:'race'}
-];
+    const EVENTS = [
+        {id:'australia', label:'AUS GP', type:'race', results: ['RUS','ANT','LEC','HAM','NOR','VER','BEA','LIN','BOR','GAS']},
+        {id:'china-sprint', label:'CHN GP', type:'sprint', results: ['RUS','LEC','HAM','NOR','ANT','PIA','LAW','BEA']},
+        {id:'china-race', label:'CHN GP', type:'race'},
+        {id:'japan', label:'JPN GP', type:'race'},
+        {id:'bahrain', label:'BHR GP', type:'race'},
+        {id:'saudi', label:'SAU GP', type:'race'},
+        {id:'miami-sprint', label:'MIA GP', type:'sprint'},
+        {id:'miami-race', label:'MIA GP', type:'race'},
+        {id:'canada-sprint', label:'CAN GP', type:'sprint'},
+        {id:'canada-race', label:'CAN GP', type:'race'},
+        {id:'monaco', label:'MON GP', type:'race'},
+        {id:'barcelona', label:'BARC GP', type:'race'},
+        {id:'austria', label:'AUT GP', type:'race'},
+        {id:'britain-sprint', label:'GBR GP', type:'sprint'},
+        {id:'britain-race', label:'GBR GP', type:'race'},
+        {id:'belgium', label:'BEL GP', type:'race'},
+        {id:'hungary', label:'HUN GP', type:'race'},
+        {id:'dutch-sprint', label:'NED GP', type:'sprint'},
+        {id:'dutch-race', label:'NED GP', type:'race'},
+        {id:'italy', label:'ITA GP', type:'race'},
+        {id:'spain', label:'ESP GP', type:'race'},
+        {id:'azerbaijan', label:'AZE GP', type:'race'},
+        {id:'singapore-sprint', label:'SGP GP', type:'sprint'},
+        {id:'singapore-race', label:'SGP GP', type:'race'},
+        {id:'usa', label:'USA GP', type:'race'},
+        {id:'mexico', label:'MEX GP', type:'race'},
+        {id:'brazil', label:'BRA GP', type:'race'},
+        {id:'lasvegas', label:'LAV GP', type:'race'},
+        {id:'qatar', label:'QAT GP', type:'race'},
+        {id:'uae', label:'UAE GP', type:'race'}
+    ];
 
-const TEAM_LOGOS = {
-  "McLaren": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/mclaren/2025mclarenlogo.webp",
-  "Red Bull": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/redbullracing/2025redbullracinglogo.webp",
-  "Mercedes": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/mercedes/2025mercedeslogo.webp",
-  "Ferrari": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/ferrari/2025ferrarilogo.webp",
-  "Aston Martin": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/astonmartin/2025astonmartinlogo.webp",
-  "Williams": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/williams/2025williamslogo.webp",
-  "Racing Bulls": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/racingbulls/2025racingbullslogo.webp",
-  "Haas": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/haasf1team/2025haasf1teamlogo.webp",
-  "Alpine": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/alpine/2025alpinelogo.webp",
-  "Kick Sauber": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/kicksauber/2025kicksauberlogo.webp"
-};
+    const TEAM_LOGOS = {
+      "McLaren": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/mclaren/2026mclarenlogo.webp",
+      "Red Bull": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/redbullracing/2026redbullracinglogo.webp",
+      "Mercedes": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/mercedes/2026mercedeslogo.webp",
+      "Ferrari": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/ferrari/2026ferrarilogo.webp",
+      "Aston Martin": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/astonmartin/2026astonmartinlogo.webp",
+      "Williams": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/williams/2026williamslogo.webp",
+      "Racing Bulls": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/racingbulls/2026racingbullslogo.webp",
+      "Haas": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/haasf1team/2026haasf1teamlogo.webp",
+      "Alpine": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/alpine/2026alpinelogo.webp",
+      "Audi": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/audi/2026audilogo.webp",
+      "Cadillac": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/cadillac/2026cadillaclogo.webp",
+    };
 
-// add dark-mode specific logos and helper to pick correct logo
-const TEAM_LOGOS_DARK = {
-  "McLaren": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/mclaren/2025mclarenlogo.webp",
-  "Red Bull": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/redbullracing/2025redbullracinglogo.webp",
-  "Mercedes": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/mercedes/2025mercedeslogowhite.webp",
-  "Ferrari": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/ferrari/2025ferrarilogo.webp",
-  "Aston Martin": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/astonmartin/2025astonmartinlogowhite.webp",
-  "Williams": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/williams/2025williamslogo.webp",
-  "Racing Bulls": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/racingbulls/2025racingbullslogo.webp",
-  "Haas": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/haasf1team/2025haasf1teamlogo.webp",
-  "Alpine": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/alpine/2025alpinelogo.webp",
-  "Kick Sauber": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2025/kicksauber/2025kicksauberlogo.webp"
-};
+    // add dark-mode specific logos and helper to pick correct logo
+    const TEAM_LOGOS_DARK = {
+      "McLaren": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/mclaren/2026mclarenlogo.webp",
+      "Red Bull": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/redbullracing/2026redbullracinglogo.webp",
+      "Mercedes": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/mercedes/2026mercedeslogowhite.webp",
+      "Ferrari": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/ferrari/2026ferrarilogo.webp",
+      "Aston Martin": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/astonmartin/2026astonmartinlogowhite.webp",
+      "Williams": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/williams/2026williamslogo.webp",
+      "Racing Bulls": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/racingbulls/2026racingbullslogowhite.webp",
+      "Haas": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/haasf1team/2026haasf1teamlogo.webp",
+      "Alpine": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/alpine/2026alpinelogo.webp",
+      "Audi": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/audi/2026audilogowhite.webp",
+      "Cadillac": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/cadillac/2026cadillaclogowhite.webp"
+    };
 
-function getLogo(team){
-  // prefer dark logos when dark-mode is active
-  if (document?.body?.classList?.contains('dark-mode')) {
-    return TEAM_LOGOS_DARK[team] || TEAM_LOGOS[team] || '';
-  }
-  return TEAM_LOGOS[team] || '';
+    const COUNTRY_FLAGS = {
+      'australia': '🇦🇺',
+      'china':     '🇨🇳',
+      'japan':     '🇯🇵',
+      'bahrain':   '🇧🇭',
+      'saudi':     '🇸🇦',
+      'miami':     '🇺🇸',
+      'canada':    '🇨🇦',
+      'monaco':    '🇲🇨',
+      'barcelona': '🇪🇸',
+      'austria':   '🇦🇹',
+      'britain':   '🇬🇧',
+      'belgium':   '🇧🇪',
+      'hungary':   '🇭🇺',
+      'dutch':     '🇳🇱',
+      'italy':     '🇮🇹',
+      'spain':     '🇪🇸',
+      'azerbaijan': '🇦🇿',
+      'singapore': '🇸🇬',
+      'usa':       '🇺🇸',
+      'mexico':    '🇲🇽',
+      'brazil':    '🇧🇷',
+      'lasvegas':  '🇺🇸',
+      'qatar':     '🇶🇦',
+      'uae':       '🇦🇪'
+    };
+
+    // visible window state
+let visibleStart = 0;
+let PAGE_SIZE = 4;
+
+function getVisibleEvents() {
+  return EVENTS.slice(visibleStart, visibleStart + PAGE_SIZE);
 }
 
-// delta reference state (null = leader)
-let deltaRef = null; // {type: 'driver'|'team', id: 'VER'|'McLaren'} or null
-
-function getDriverTotal(code){
-  const base = state[code]?.base || DRIVERS.find(d=>d.code===code)?.base || 0;
-  const added = Object.values(state[code]?.added || {}).reduce((a,b)=>a+b,0);
-  return base + added;
+function prevPage() {
+  if (visibleStart === 0) return;
+  visibleStart = Math.max(0, visibleStart - PAGE_SIZE);
+  rebuildEditor();
 }
 
-function getConstructorTotal(team){
-  const drivers = DRIVERS.filter(d=>d.team===team);
-  return drivers.reduce((s,d)=> s + getDriverTotal(d.code), 0);
+function nextPage() {
+  if (visibleStart + PAGE_SIZE >= EVENTS.length) return;
+  visibleStart += PAGE_SIZE;
+  rebuildEditor();
 }
 
-function setDeltaReference(type, id){
-  // toggle: clicking same selection clears to leader
-  if (deltaRef && deltaRef.type === type && deltaRef.id === id){
-    deltaRef = null;
-  } else {
-    deltaRef = {type, id};
-  }
-  // refresh delta displays and visual selection
-  refreshEditorDeltas();
-  refreshConstructorDeltas();
-  // update highlight on standings rows
-  updateStandingsSelectionUI();
-}
-
-function updateStandingsSelectionUI(){
-  // remove previous selection classes
-  document.querySelectorAll('#driverStandings tr, #constructorStandings tr').forEach(tr=> tr.classList.remove('selected-row'));
-  if(!deltaRef) return;
-  if(deltaRef.type === 'driver'){
-    const el = document.querySelector(`#driverStandings tr[data-driver="${deltaRef.id}"]`);
-    if(el) el.classList.add('selected-row');
-  } else {
-    const key = CSS.escape(deltaRef.id);
-    const el = document.querySelector(`#constructorStandings tr[data-cons="${key}"]`);
-    if(el) el.classList.add('selected-row');
-  }
-}
-
-function refreshEditorDeltas(){
-  // compute reference value
-  let refVal = null;
-  if(!deltaRef){
-    // default leader
-    const totals = DRIVERS.map(d=> getDriverTotal(d.code));
-    refVal = Math.max(...totals,0);
-  } else if(deltaRef.type === 'driver'){
-    refVal = getDriverTotal(deltaRef.id);
-  } else {
-    refVal = getConstructorTotal(deltaRef.id);
-  }
-
-  DRIVERS.forEach(d=>{
-    const el = document.getElementById(`delta-${d.code}`);
-    if(!el) return;
-    const val = getDriverTotal(d.code) - refVal;
-    if(deltaRef && deltaRef.type==='team'){
-      // when comparing to team, show driver vs team (signed)
-      el.innerText = val === 0 ? '—' : (val > 0 ? `+${val}` : `${val}`);
-    } else {
-      // when comparing to driver (or leader), show relative sign (positive = ahead)
-      el.innerText = deltaRef && deltaRef.type==='driver' && d.code === deltaRef.id ? '—' :
-                     (!deltaRef && getDriverTotal(d.code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
+function clearEvent(eventId) {
+  DRIVERS.forEach(d => {
+    if (state[d.code] && state[d.code].added) {
+      state[d.code].added[eventId] = 0;
     }
   });
-
-  // also refresh standings table deltas
-  document.querySelectorAll('#driverStandings [data-stand-delta]').forEach(span=>{
-    const code = span.dataset.code;
-    const val = getDriverTotal(code) - refVal;
-    span.innerText = deltaRef && deltaRef.type==='driver' && code === deltaRef.id ? '—' :
-                     (!deltaRef && getDriverTotal(code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
-  });
+  rebuildEditor();
 }
 
-function refreshConstructorDeltas(){
-  let refVal = null;
-  if(!deltaRef){
-    // default leader constructor
-    const consTotals = CONSTRUCTORS.map(c=> getConstructorTotal(c));
-    refVal = Math.max(...consTotals,0);
-  } else if(deltaRef.type === 'team'){
-    refVal = getConstructorTotal(deltaRef.id);
-  } else {
-    // driver selected => compare constructors to driver total
-    refVal = getDriverTotal(deltaRef.id);
-  }
-
-  document.querySelectorAll('#constructorStandings [data-cons-delta]').forEach(span=>{
-    const team = span.dataset.team;
-    const val = getConstructorTotal(team) - refVal;
-    span.innerText = deltaRef && deltaRef.type==='team' && team === deltaRef.id ? '—' :
-                     (!deltaRef && getConstructorTotal(team) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
-  });
-}
-
-// --- app state (single declaration)
-let state = {};
-let lastSimResult = null;
-
-// --- helpers for options
-function createRaceOptions(){
-  const opts = [{v:0,t:'0'}];
-  for(let i=0;i<RACE_POINTS.length;i++) opts.push({v:RACE_POINTS[i], t:`P${i+1} (${RACE_POINTS[i]} pts)`});
-  return opts;
-}
-function createSprintOptions(){
-  const opts = [{v:0,t:'0'}];
-  for(let i=0;i<SPRINT_POINTS.length;i++) opts.push({v:SPRINT_POINTS[i], t:`P${i+1} (${SPRINT_POINTS[i]} pts)`});
-  return opts;
-}
-const raceOpts = createRaceOptions();
-const sprintOpts = createSprintOptions();
-
-// --- init / UI building
-function initializeState() {
-  state = {};
-  DRIVERS.forEach(d => {
-      state[d.code] = {
-          base: d.base,
-          added: {}
-      };
-      EVENTS.forEach(e => {
-          state[d.code].added[e.id] = 0;
-      });
-  });
-}
-
-function initEditor() {
-  const tbody = document.getElementById('driversBody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  // Sort drivers by current standings (base + added)
-  const driversArr = DRIVERS.map(d => {
-    const added = Object.values(state[d.code]?.added || {}).reduce((a, b) => a + b, 0);
-    return { ...d, added, total: d.base + added };
-  }).sort((a, b) => b.total - a.total || a.code.localeCompare(b.code));
-
-  const leaderTotal = driversArr.length ? driversArr[0].total : 0;
-
-  driversArr.forEach(d => {
-    if (!state[d.code]) {
-      state[d.code] = { base: d.base, added: {} };
-      EVENTS.forEach(e => state[d.code].added[e.id] = 0);
-    }
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>
-        <img src="${getLogo(d.team)}" alt="${d.team}" style="height:20px;width:20px;object-fit:contain;vertical-align:middle;margin-right:8px;">
-        <b>${d.code}</b>
-        <span class='team-name'>${d.name} <span style="color:#aaa;font-size:12px;">(${d.team})</span></span>
-      </td>
-    `;
-    EVENTS.forEach(ev => {
-      const td = document.createElement('td');
-      const sel = document.createElement('select');
-      sel.dataset.code = d.code;
-      sel.dataset.event = ev.id;
-      const opts = ev.type === 'race' ? raceOpts : sprintOpts;
-      opts.forEach(o => {
-        const op = document.createElement('option');
-        op.value = o.v;
-        op.text = o.t;
-        sel.appendChild(op);
-      });
-      sel.value = state[d.code].added[ev.id] || 0;
-      sel.addEventListener('change', onSelectChange);
-      td.appendChild(sel);
-      tr.appendChild(td);
-    });
-    const tdTotal = document.createElement('td');
-    tdTotal.innerHTML = `<div class='small-note' id='added-${d.code}'>+${d.added}</div><div class='pts' id='total-${d.code}'>${d.total} pts</div>`;
-    tr.appendChild(tdTotal);
-
-    // Delta column (give id so we can update after edits)
-    const tdDelta = document.createElement('td');
-    tdDelta.innerHTML = `<span id='delta-${d.code}' class='small-note'>${d.total === leaderTotal ? '—' : `-${leaderTotal - d.total}`}</span>`;
-    tr.appendChild(tdDelta);
-
-    tbody.appendChild(tr);
-  });
-
-  enforceAllUnique();
-  updateTotals();
-}
-
-// selection change
-function onSelectChange(e) {
-  const sel = e.currentTarget;
-  const code = sel.dataset.code;
-  const ev = sel.dataset.event;
-  const val = Number(sel.value) || 0;
-
-  if (!state[code]) state[code] = {base:0, added:{}};
-  state[code].added[ev] = val;
-  enforceUniqueForEvent(ev);
-  updateTotals();
-}
-
-// uniqueness enforcement
-function enforceUniqueForEvent(eventId){
-  const selects = Array.from(document.querySelectorAll(`select[data-event="${eventId}"]`));
-  const selected = new Set();
-  selects.forEach(s=>{ const v=Number(s.value); if(v!==0) selected.add(v); });
-  selects.forEach(s=>{
-    const myVal = Number(s.value);
-    Array.from(s.options).forEach(opt=>{
-      const v = Number(opt.value);
-      if(v === 0 || v === myVal) opt.disabled = false;
-      else opt.disabled = selected.has(v);
-    });
-  });
-}
-function enforceAllUnique(){ EVENTS.forEach(e=> enforceUniqueForEvent(e.id)); }
-
-// totals / standings
-function updateTotals() {
-  if (!DRIVERS || !state) return;
-  DRIVERS.forEach(d => {
-      if (!state[d.code]) return;
-      const addedSum = Object.values(state[d.code].added || {}).reduce((a,b) => a+b, 0);
-      const total = (state[d.code].base || 0) + addedSum;
-      const addedEl = document.getElementById('added-'+d.code);
-      const totalEl = document.getElementById('total-'+d.code);
-      if (addedEl) addedEl.innerText = '+' + addedSum;
-      if (totalEl) totalEl.innerText = total + ' pts';
-  });
-  updateConstructorsAndDriversStandings();
-
-  // refresh deltas & selection so editor and standings update after any edit/randomize
-  try { refreshEditorDeltas(); } catch(e){ /* safe */ }
-  try { refreshConstructorDeltas(); } catch(e){ /* safe */ }
-  try { updateStandingsSelectionUI(); } catch(e){ /* safe */ }
-}
-
-// replace existing updateConstructorsAndDriversStandings() with this improved version
-function updateConstructorsAndDriversStandings(){
-  const cons = {};
-  CONSTRUCTORS.forEach(c=> cons[c] = {base:0, added:0, total:0});
-  DRIVERS.forEach(d=>{
-    const addedSum = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
-    if(!cons[d.team]) cons[d.team] = {base:0, added:0, total:0};
-    cons[d.team].base += d.base;
-    cons[d.team].added += addedSum;
-    cons[d.team].total += d.base + addedSum;
-  });
-
-  // drivers
-  const driversArr = DRIVERS.map(d=>{
-    const added = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
-    return {code:d.code, name:d.name, team:d.team, base:d.base, added, total: d.base + added};
-  }).sort((a,b)=>b.total-a.total || a.code.localeCompare(b.code));
-
-  const leaderTotal = driversArr.length ? driversArr[0].total : 0;
-
-  let html = `
-    <div style="margin-bottom:18px;">
-      <div style="font-weight:600;font-size:16px;margin-bottom:6px;">Drivers (top)</div>
-      <table style="width:100%">
-        <thead>
-          <tr><th>Pos</th><th>Driver</th><th style="text-align:right">Total</th><th style="text-align:right">Delta</th></tr>
-        </thead>
-        <tbody>
-          ${driversArr.map((d,i)=>{
-            const delta = d.total === leaderTotal ? '—' : (d.total>leaderTotal? `+${d.total-leaderTotal}` : `-${leaderTotal - d.total}`);
-            // data-driver + onclick to set delta reference
-            return `
-            <tr data-driver="${d.code}" onclick="setDeltaReference('driver','${d.code.replace(/'/g,"\\'")}')">
-              <td>${i+1}</td>
-              <td>
-                <b>${d.code}</b>
-                <span class='team-name'>
-                  <img src="${getLogo(d.team)}" alt="${d.team}" style="height:16px;vertical-align:middle;margin-right:6px;">
-                  ${d.team}
-                </span>
-                <div class='small-note'>+${d.added}</div>
-              </td>
-              <td style='text-align:right'><b>${d.total} pts</b></td>
-              <td style='text-align:right'><span class="small-note" data-stand-delta data-code="${d.code}" id="stand-delta-${d.code}">${delta}</span></td>
-            </tr>
-          `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-  document.getElementById('driverStandings').innerHTML = html;
-
-  // constructors
-  const consArr = Object.keys(cons).map(k=>({team:k, base:cons[k].base, added:cons[k].added, total:cons[k].total})).sort((a,b)=>b.total-a.total);
-  const consLeader = consArr.length ? consArr[0].total : 0;
-
-  let html2 = `
-    <div style="margin-top:18px;">
-      <div style="font-weight:600;font-size:16px;margin-bottom:6px;">Constructors</div>
-      <table style="width:100%">
-        <thead>
-          <tr>
-            <th>Constructor</th>
-            <th style="text-align:right">Total</th>
-            <th style="text-align:right">Delta</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${consArr.map((c,i)=>{
-            const delta = c.total === consLeader ? '—' : (c.total>consLeader? `+${c.total-consLeader}` : `-${consLeader - c.total}`);
-            const safeTeam = c.team.replace(/"/g,'&quot;');
-            // data-cons + onclick to set delta reference (team)
-            return `
-              <tr data-cons="${safeTeam}" onclick="setDeltaReference('team','${safeTeam.replace(/'/g,"\\'")}')">
-                <td>
-                  <img src="${getLogo(c.team)}" alt="${c.team}" style="height:18px;vertical-align:middle;margin-right:6px;">
-                  <b>${i+1}. ${c.team}</b>
-                </td>
-                <td style="text-align:right">${Math.round(c.total)} pts <div class='small-note'>+${Math.round(c.added)}</div></td>
-                <td style="text-align:right"><span class="small-note" data-cons-delta data-team="${c.team}" id="cons-delta-${c.team.replace(/\s+/g,'_')}">${delta}</span></td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-  document.getElementById('constructorStandings').innerHTML = html2;
-}
-
-// renderSimResults: use getLogo so dark-mode logos show, and keep structure stable
-function renderSimResults(){
-  if(!lastSimResult) return;
-  const ds = lastSimResult.driverStats; const ts = lastSimResult.teamStats;
-  let html = '<table class="stat-table" style="width:100%"><thead><tr><th>Driver</th><th>Team</th><th>Champion</th><th>Top 2</th><th>Top 3</th></tr></thead><tbody>';
-  const driversWithPts = DRIVERS.map(d=>{ const added = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0); return {code:d.code, team:d.team, pts:d.base+added, stats:ds[d.code]||{champ:0,top2:0,top3:0}}; });
-  driversWithPts.sort((a,b)=>b.stats.champ-a.stats.champ);
-  driversWithPts.forEach(d=> html += `
-  <tr>
-    <td>
-      <img src="${getLogo(d.team)}" alt="${d.team}" style="height:16px;vertical-align:middle;margin-right:4px;">
-      ${d.code}
-    </td>
-    <td>${d.team}</td>
-    <td>${d.stats.champ.toFixed(1)}%</td>
-    <td>${d.stats.top2.toFixed(1)}%</td>
-    <td>${d.stats.top3.toFixed(1)}%</td>
-  </tr>`);
-  html += '</tbody></table>';
-  document.getElementById('simTable').innerHTML = html;
-
-  // Constructors table (use getLogo)
-  let html2 = '<table class="stat-table" style="width:100%;margin-top:10px"><thead><tr><th>Constructor</th><th>Champion</th><th>Top 2</th><th>Top 3</th></tr></thead><tbody>';
-  const consWithPts = Object.keys(ts).map(t=>({team:t, stats:ts[t]})).sort((a,b)=>b.stats.champ-a.stats.champ);
-  consWithPts.forEach(c=> html2 += `
-    <tr>
-      <td>
-        <img src="${getLogo(c.team)}" alt="${c.team}" style="height:18px;vertical-align:middle;margin-right:4px;">
-        ${c.team}
-      </td>
-      <td>${c.stats.champ.toFixed(1)}%</td>
-      <td>${c.stats.top2.toFixed(1)}%</td>
-      <td>${c.stats.top3.toFixed(1)}%</td>
-    </tr>`);
-  html2 += '</tbody></table>';
-  document.getElementById('simTable').innerHTML += html2;
-}
-
-// build table header from EVENTS (removes hard-coded MEX column)
-function buildTableHeader() {
-  const thead = document.getElementById('driversHead');
-  if (!thead) return;
-  let html = '<tr><th>Driver</th>';
-  EVENTS.forEach(ev => {
-    html += `<th>${ev.label}</th>`;
-  });
-  html += '<th>Added / Total</th><th>Delta</th></tr>'; // Add Delta column
-  thead.innerHTML = html;
-}
-
-// --- bootstrap after DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  initializeState();
+function rebuildEditor() {
   buildTableHeader();
   initEditor();
-  attachEventListeners();
-  updateTotals();
-});
-
-function switchTab(tabName) {
-  const editorCard = document.getElementById('editorCard');
-  const simCard = document.getElementById('simCard');
-  const tabEditor = document.getElementById('tabEditor');
-  const tabSim = document.getElementById('tabSim');
-  if (!editorCard || !simCard || !tabEditor || !tabSim) return;
-
-  if (tabName === 'sim') {
-    tabSim.classList.add('active');
-    tabEditor.classList.remove('active');
-    editorCard.style.display = 'none';
-    simCard.style.display = 'block';
-  } else {
-    tabEditor.classList.add('active');
-    tabSim.classList.remove('active');
-    editorCard.style.display = 'block';
-    simCard.style.display = 'none';
-  }
+  updateTotals();          // deltas/standings rely on the new header
 }
 
-// Replace the existing attachEventListeners() with this robust version
-function attachEventListeners() {
-  const $ = id => document.getElementById(id);
-  const log = (m) => console.log('[listeners] ' + m);
-
-  // safe binder: uses handler if defined, otherwise a sensible fallback
-  function bindClick(id, handler, fallback) {
-    const el = $(id);
-    if (!el) { console.warn(`[listeners] ${id} missing`); return; }
-    if (typeof handler === 'function') {
-      el.addEventListener('click', handler);
-      log(`bound ${id}`);
-    } else if (typeof fallback === 'function') {
-      el.addEventListener('click', fallback);
-      console.warn(`[listeners] ${id} bound to fallback`);
-    } else {
-      el.addEventListener('click', () => console.warn(`[listeners] ${id} clicked but no handler available`));
-      console.warn(`[listeners] ${id} bound to noop`);
+    function getLogo(team){
+      // prefer dark logos when dark-mode is active
+      if (document?.body?.classList?.contains('dark-mode')) {
+        return TEAM_LOGOS_DARK[team] || TEAM_LOGOS[team] || '';
+      }
+      return TEAM_LOGOS[team] || '';
     }
-  }
 
-  // tabs
-  bindClick('tabEditor', () => switchTab('editor'));
-  bindClick('tabSim', () => switchTab('sim'));
+    // delta reference state (null = leader)
+    let deltaRef = null; // {type: 'driver'|'team', id: 'VER'|'McLaren'} or null
 
-  // reset: prefer resetAll if present, otherwise re-init state as fallback
-  bindClick('resetBtn',
-    typeof resetAll === 'function' ? resetAll : () => { initializeState(); buildTableHeader(); initEditor(); updateTotals(); console.warn('Used fallback reset'); }
-  );
+    function getDriverTotal(code){
+      const base = state[code]?.base || DRIVERS.find(d=>d.code===code)?.base || 0;
+      const added = Object.values(state[code]?.added || {}).reduce((a,b)=>a+b,0);
+      return base + added;
+    }
 
-  // randomize
-  bindClick('randomBtn',
-    typeof randomize === 'function' ? () => randomize() : () => { console.warn('randomize() not available'); alert('Randomize not available'); }
-  );
+    function getConstructorTotal(team){
+      const drivers = DRIVERS.filter(d=>d.team===team);
+      return drivers.reduce((s,d)=> s + getDriverTotal(d.code), 0);
+    }
 
-  // run simulation
-  bindClick('runSimBtn',
-    () => {
-      const simRunsEl = $('simRuns');
-      const runs = Math.min(Math.max(parseInt(simRunsEl?.value) || 1000, 100), 10000);
-      const rem = (typeof countRemainingEvents === 'function') ? countRemainingEvents() : {races:0,sprints:0};
-      if (typeof runMonteCarlo === 'function') {
-        runMonteCarlo({ races: rem.races, sprints: rem.sprints, runs, baseline: 5 });
+    function setDeltaReference(type, id){
+      // toggle: clicking same selection clears to leader
+      if (deltaRef && deltaRef.type === type && deltaRef.id === id){
+        deltaRef = null;
       } else {
-        console.warn('runMonteCarlo not available');
-        alert('Simulator not available');
+        deltaRef = {type, id};
       }
-    },
-    typeof runMonteCarlo === 'function' ? null : () => {}
-  );
-
-  // simRuns input guard
-  const simRunsEl = $('simRuns');
-  if (simRunsEl) {
-    simRunsEl.addEventListener('input', function(e){
-      const value = parseInt(e.target.value);
-      if (isNaN(value) || value < 100) e.target.value = 100;
-      else if (value > 10000) e.target.value = 10000;
-    });
-    log('bound simRuns input');
-  } else console.warn('[listeners] simRuns missing');
-
-  // dark mode toggle (safe)
-  const darkBtn = $('darkModeBtn');
-  if (darkBtn) {
-    darkBtn.addEventListener('click', () => {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('f1-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
-      darkBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark';
-    });
-    log('bound darkModeBtn');
-    if (localStorage.getItem('f1-dark-mode') === '1') {
-      document.body.classList.add('dark-mode');
-      darkBtn.textContent = '☀️ Light';
+      // refresh delta displays and visual selection
+      refreshEditorDeltas();
+      refreshConstructorDeltas();
+      // update highlight on standings rows
+      updateStandingsSelectionUI();
     }
-  } else console.warn('[listeners] darkModeBtn missing');
-}
 
-// Diagnostic helpers — show uncaught errors and confirm listeners
-(function enableDiagnostics(){
-  // visible overlay for the first error
-  const overlay = document.createElement('div');
-  overlay.id = 'js-error-overlay';
-  overlay.style = 'position:fixed;right:12px;bottom:12px;z-index:99999;background:#fff;color:#000;padding:10px 12px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.25);max-width:360px;font-family:Inter,sans-serif;font-size:13px;display:none;';
-  document.body?.appendChild(overlay);
-
-  function show(msg){
-    overlay.innerText = msg;
-    overlay.style.display = 'block';
-  }
-
-  window.addEventListener('error', function(evt){
-    try{ show('Error: ' + (evt.error?.message || evt.message || 'Unknown error')); }catch(e){ console.error(e); }
-    console.error('Unhandled error', evt.error || evt.message, evt);
-  });
-
-  window.addEventListener('unhandledrejection', function(evt){
-    try{ show('UnhandledRejection: ' + (evt.reason?.message || JSON.stringify(evt.reason) || evt.reason)); }catch(e){ console.error(e); }
-    console.error('Unhandled promise rejection', evt.reason);
-  });
-
-  // patch attachEventListeners to log when it runs
-  const origAttach = window.attachEventListeners;
-  window.attachEventListeners = function(...args){
-    console.log('attachEventListeners() starting');
-    try{
-      if (origAttach) origAttach.apply(this, args);
-      else {
-        // If attachEventListeners isn't defined yet, call existing in-file function later
-        console.warn('attachEventListeners not defined at patch time');
+    function updateStandingsSelectionUI(){
+      // remove previous selection classes
+      document.querySelectorAll('#driverStandings tr, #constructorStandings tr').forEach(tr=> tr.classList.remove('selected-row'));
+      if(!deltaRef) return;
+      if(deltaRef.type === 'driver'){
+        const el = document.querySelector(`#driverStandings tr[data-driver="${deltaRef.id}"]`);
+        if(el) el.classList.add('selected-row');
+      } else {
+        const key = CSS.escape(deltaRef.id);
+        const el = document.querySelector(`#constructorStandings tr[data-cons="${key}"]`);
+        if(el) el.classList.add('selected-row');
       }
-      console.log('attachEventListeners() done');
-    }catch(err){
-      console.error('attachEventListeners error', err);
-      show('attachEventListeners error: ' + (err.message || err));
-      throw err;
     }
-  };
-})();
 
-// utility: weighted shuffle (sampling without replacement)
-function weightedShuffle(items, weights){
-  const list = items.slice();
-  const w = weights.slice();
-  const out = [];
-  while(list.length){
-    const total = w.reduce((a,b)=>a+b,0);
-    let r = Math.random() * total;
-    let idx = 0;
-    while(r > w[idx]) { r -= w[idx]; idx++; }
-    out.push(list[idx]);
-    list.splice(idx,1);
-    w.splice(idx,1);
-  }
-  return out;
-}
+    function refreshEditorDeltas(){
+      // compute reference value
+      let refVal = null;
+      if(!deltaRef){
+        // default leader
+        const totals = DRIVERS.map(d=> getDriverTotal(d.code));
+        refVal = Math.max(...totals,0);
+      } else if(deltaRef.type === 'driver'){
+        refVal = getDriverTotal(deltaRef.id);
+      } else {
+        refVal = getConstructorTotal(deltaRef.id);
+      }
 
-// reset all user-added predictions
-function resetAll(){
-  DRIVERS.forEach(d=>{
-    if (!state[d.code]) state[d.code] = { base: d.base, added: {} };
-    EVENTS.forEach(e => state[d.code].added[e.id] = 0);
-  });
-  initEditor();
-  updateTotals();
-}
-
-// randomize editor (mutates state)
-function randomize(biasStrength = 1.4, noise = 0.18, topCount = 6){
-  const codes = DRIVERS.map(d=>d.code);
-  // ensure state shape
-  codes.forEach(c => { if(!state[c]) state[c] = { base: 0, added: {} }; if(!state[c].added) state[c].added = {}; });
-
-  EVENTS.forEach(ev => {
-    const points = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
-
-    // compute current totals for biasing
-    const totals = {};
-    codes.forEach(c => totals[c] = getDriverTotal(c));
-
-    // determine top drivers by total
-    const sorted = codes.slice().sort((a,b)=> totals[b] - totals[a]);
-    const topSet = new Set(sorted.slice(0, Math.min(topCount, sorted.length)));
-
-    // build weights
-    const weights = codes.map(c => {
-      const base = topSet.has(c) ? Math.pow((totals[c] || 0) + 1, biasStrength) : Math.pow((totals[c] || 0) + 1, biasStrength) * 0.35;
-      return Math.max(0.0001, base * (1 + (Math.random() - 0.5) * noise));
-    });
-
-    const order = weightedShuffle(codes, weights);
-    order.forEach((code, idx) => {
-      const pts = points[idx] || 0;
-      state[code].added[ev.id] = pts;
-    });
-  });
-
-  enforceAllUnique();
-  updateTotals();
-  initEditor(); // rebuild editor so selects/options reflect new state
-}
-
-// Monte-Carlo simulator (simple approach using randomize variants)
-function runMonteCarlo({races = 0, sprints = 0, runs = 1000, baseline = 5} = {}){
-  // guard
-  runs = Math.max(100, Math.min(20000, runs));
-  const driverCounts = {}; const teamCounts = {};
-  DRIVERS.forEach(d => { driverCounts[d.code] = {champ:0, top2:0, top3:0}; });
-  CONSTRUCTORS.forEach(t => { teamCounts[t] = {champ:0, top2:0, top3:0}; });
-
-  // keep current 'base' + already assigned added as starting point
-  const savedState = JSON.parse(JSON.stringify(state));
-
-  for(let i=0;i<runs;i++){
-    // perform randomized assignment but don't overwrite global state permanently
-    // create local copy
-    const simState = {};
-    DRIVERS.forEach(d => simState[d.code] = { base: d.base, added: {} });
-
-    // copy existing added (so user's picks are preserved as baseline)
-    DRIVERS.forEach(d => {
-      simState[d.code].added = Object.assign({}, savedState[d.code].added || {});
-    });
-
-    // randomize remaining events only (we assume EVENTS still all present)
-    EVENTS.forEach(ev => {
-      const points = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
-      // compute totals from simState
-      const totals = DRIVERS.map(d => simState[d.code].base + Object.values(simState[d.code].added || {}).reduce((a,b)=>a+b,0));
-      // compute weights proportional to totals + small noise
-      const codes = DRIVERS.map(d => d.code);
-      const weights = codes.map((c,idx) => Math.max(0.0001, Math.pow(totals[idx] + 1, 1.2) * (1 + (Math.random()-0.5)*0.2)));
-      const order = weightedShuffle(codes, weights);
-      order.forEach((code, idx) => {
-        simState[code].added[ev.id] = (simState[code].added[ev.id] || 0) + (points[idx] || 0);
+      DRIVERS.forEach(d=>{
+        const el = document.getElementById(`delta-${d.code}`);
+        if(!el) return;
+        const val = getDriverTotal(d.code) - refVal;
+        if(deltaRef && deltaRef.type==='team'){
+          // when comparing to team, show driver vs team (signed)
+          el.innerText = val === 0 ? '—' : (val > 0 ? `+${val}` : `${val}`);
+        } else {
+          // when comparing to driver (or leader), show relative sign (positive = ahead)
+          el.innerText = deltaRef && deltaRef.type==='driver' && d.code === deltaRef.id ? '—' :
+                        (!deltaRef && getDriverTotal(d.code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
+        }
       });
-    });
 
-    // compute final totals and sort
-    const final = DRIVERS.map(d => ({ code: d.code, team: d.team, total: simState[d.code].base + Object.values(simState[d.code].added||{}).reduce((a,b)=>a+b,0) }));
-    final.sort((a,b)=> b.total - a.total);
-
-    // drivers
-    if(final[0]) driverCounts[final[0].code].champ++;
-    final.slice(0,2).forEach(f => driverCounts[f.code].top2++);
-    final.slice(0,3).forEach(f => driverCounts[f.code].top3++);
-
-    // constructors: sum per team and rank
-    const consTotals = {};
-    CONSTRUCTORS.forEach(t => consTotals[t] = 0);
-    final.forEach(f => consTotals[f.team] = (consTotals[f.team] || 0) + f.total);
-    const consArr = Object.keys(consTotals).map(t => ({team:t, total: consTotals[t]})).sort((a,b)=> b.total - a.total);
-    if(consArr[0]) teamCounts[consArr[0].team].champ++;
-    consArr.slice(0,2).forEach(c => teamCounts[c.team].top2++);
-    consArr.slice(0,3).forEach(c => teamCounts[c.team].top3++);
-  }
-
-  // restore global state
-  state = savedState;
-  // compute percentages
-  const driverStats = {};
-  Object.keys(driverCounts).forEach(code => {
-    driverStats[code] = {
-      champ: 100 * driverCounts[code].champ / runs,
-      top2: 100 * driverCounts[code].top2 / runs,
-      top3: 100 * driverCounts[code].top3 / runs
-    };
-  });
-  const teamStats = {};
-  Object.keys(teamCounts).forEach(team => {
-    teamStats[team] = {
-      champ: 100 * teamCounts[team].champ / runs,
-      top2: 100 * teamCounts[team].top2 / runs,
-      top3: 100 * teamCounts[team].top3 / runs
-    };
-  });
-
-  lastSimResult = { driverStats, teamStats };
-  renderSimResults();
-}
-
-// update attachEventListeners: ensure dark toggle re-renders logos and editor
-function attachEventListeners() {
-  const $ = id => document.getElementById(id);
-  const log = (m) => console.log('[listeners] ' + m);
-
-  function bindClick(id, handler, fallback) {
-    const el = $(id);
-    if (!el) { console.warn(`[listeners] ${id} missing`); return; }
-    if (typeof handler === 'function') {
-      el.addEventListener('click', handler);
-      log(`bound ${id}`);
-    } else if (typeof fallback === 'function') {
-      el.addEventListener('click', fallback);
-      console.warn(`[listeners] ${id} bound to fallback`);
-    } else {
-      el.addEventListener('click', () => console.warn(`[listeners] ${id} clicked but no handler available`));
-      console.warn(`[listeners] ${id} bound to noop`);
+      // also refresh standings table deltas
+      document.querySelectorAll('#driverStandings [data-stand-delta]').forEach(span=>{
+        const code = span.dataset.code;
+        const val = getDriverTotal(code) - refVal;
+        span.innerText = deltaRef && deltaRef.type==='driver' && code === deltaRef.id ? '—' :
+                        (!deltaRef && getDriverTotal(code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
+      });
     }
+
+    function refreshConstructorDeltas(){
+      let refVal = null;
+      if(!deltaRef){
+        // default leader constructor
+        const consTotals = CONSTRUCTORS.map(c=> getConstructorTotal(c));
+        refVal = Math.max(...consTotals,0);
+      } else if(deltaRef.type === 'team'){
+        refVal = getConstructorTotal(deltaRef.id);
+      } else {
+        // driver selected => compare constructors to driver total
+        refVal = getDriverTotal(deltaRef.id);
+      }
+
+      document.querySelectorAll('#constructorStandings [data-cons-delta]').forEach(span=>{
+        const team = span.dataset.team;
+        const val = getConstructorTotal(team) - refVal;
+        span.innerText = deltaRef && deltaRef.type==='team' && team === deltaRef.id ? '—' :
+                        (!deltaRef && getConstructorTotal(team) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
+      });
+    }
+
+    // --- app state (single declaration)
+    let state = {};
+    let lastSimResult = null;
+
+    // --- helpers for options
+    function createRaceOptions(){
+      const opts = [{v:'0',t:'0'}];
+      for(let i=0;i<RACE_POINTS.length;i++) opts.push({v:RACE_POINTS[i].toString(), t:`P${i+1} (${RACE_POINTS[i]} pts)`});
+      return opts;
+    }
+    function createSprintOptions(){
+      const opts = [{v:'0',t:'0'}];
+      for(let i=0;i<SPRINT_POINTS.length;i++) opts.push({v:SPRINT_POINTS[i].toString(), t:`P${i+1} (${SPRINT_POINTS[i]} pts)`});
+      return opts;
+    }
+    const raceOpts = createRaceOptions();
+    const sprintOpts = createSprintOptions();
+
+    // --- init / UI building
+    function initializeState() {
+      state = {};
+      let firstEmptyIndex = -1;
+
+      DRIVERS.forEach(d => {
+          state[d.code] = { base: d.base, added: {} };
+      });
+
+      EVENTS.forEach((e, index) => {
+          // Find the first event that does NOT have hardcoded results
+          if (!e.results && firstEmptyIndex === -1) {
+              firstEmptyIndex = index;
+          }
+
+          DRIVERS.forEach(d => {
+              let points = 0;
+              if (e.results) {
+                  const pos = e.results.indexOf(d.code);
+                  const pointsArr = e.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+                  if (pos !== -1 && pos < pointsArr.length) {
+                      points = pointsArr[pos];
+                  }
+              }
+              // This ensures state matches the hardcoding for the UI dropdowns
+              state[d.code].added[e.id] = points;
+          });
+      });
+
+      // Set navigation: Start at the first incomplete race
+      if (firstEmptyIndex !== -1) {
+          visibleStart = firstEmptyIndex;
+      } else {
+          // If all races are done, show the last page
+          visibleStart = Math.max(0, EVENTS.length - PAGE_SIZE);
+      }
+    }
+
+    function initEditor() {
+      const tbody = document.getElementById('driversBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const evs = getVisibleEvents();
+      const driversArr = DRIVERS.map(d => {
+        const added = Object.values(state[d.code]?.added || {}).reduce((a,b)=>a+b,0);
+        return { ...d, added, total: (state[d.code]?.base||d.base) + added };
+      }).sort((a,b)=>b.total - a.total);
+
+      const leaderTotal = driversArr[0]?.total || 0;
+
+      driversArr.forEach(d => {
+        const tr = document.createElement('tr');
+        // Editor Driver Column: Stacked Code, Name (No wrap), Team
+        tr.innerHTML = `<td>
+                          <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${getLogo(d.team)}" alt="${d.team}" style="height: 26px; width: 26px; margin: 0; object-fit: contain;">
+                            <div style="line-height: 1.2;">
+                              <div style="font-weight: 700; color: var(--text); font-size: 1.1em;">${d.code}</div>
+                              <div style="font-weight: 400; font-size: 0.9em; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${d.name}</div>
+                              <div style="font-size: 0.8em; color: var(--muted); margin-top: 2px;">${d.team}</div>
+                            </div>
+                          </div>
+                        </td>`;
+        evs.forEach(ev => {
+          const td = document.createElement('td');
+          const sel = document.createElement('select');
+          sel.dataset.code = d.code;
+          sel.dataset.event = ev.id;
+          const opts = ev.type === 'race' ? raceOpts : sprintOpts;
+          opts.forEach(o => {
+            const op = document.createElement('option');
+            op.value = o.v; op.text = o.t;
+            sel.appendChild(op);
+          });
+          sel.value = (state[d.code].added[ev.id] || 0).toString();
+          sel.addEventListener('change', onSelectChange);
+          td.appendChild(sel);
+          tr.appendChild(td);
+        });
+        tr.insertAdjacentHTML('beforeend', `<td style="text-align:center;">
+                          <div class="small-note" id="added-${d.code}">+${d.added}</div>
+                          <div class="pts" id="total-${d.code}">${d.total} pts</div>
+                        </td>
+                        <td style="text-align:center;"><span id="delta-${d.code}" class="small-note">${
+                              d.total === leaderTotal ? '—' :
+                              (d.total > leaderTotal ? `+${d.total - leaderTotal}` :
+                                                        `-${leaderTotal - d.total}`)
+                            }</span></td>`);
+        tbody.appendChild(tr);
+      });
+    }
+
+    // selection change (with kick/override logic)
+    function onSelectChange(e) {
+      const sel = e.currentTarget;
+      const code = sel.dataset.code;
+      const ev = sel.dataset.event;
+      const val = Number(sel.value) || 0;
+
+      if (!state[code]) state[code] = {base: 0, added: {}};
+
+      // KICK LOGIC
+      if (val > 0) {
+          Object.keys(state).forEach(otherCode => {
+              if (otherCode !== code && state[otherCode].added[ev] === val) {
+                  // Kick the other guy
+                  state[otherCode].added[ev] = 0;
+                  
+                  // Find that guy's dropdown in the DOM and reset it visually
+                  const otherSel = document.querySelector(`select[data-code="${otherCode}"][data-event="${ev}"]`);
+                  if (otherSel) {
+                      otherSel.value = "0";
+                  }
+              }
+          });
+      }
+
+      state[code].added[ev] = val;
+      updateTotals(); // Recalculate standings
   }
 
-  bindClick('tabEditor', () => switchTab('editor'));
-  bindClick('tabSim', () => switchTab('sim'));
-
-  bindClick('resetBtn', typeof resetAll === 'function' ? resetAll : () => { initializeState(); buildTableHeader(); initEditor(); updateTotals(); console.warn('Used fallback reset'); });
-
-  bindClick('randomBtn', () => randomize());
-
-  bindClick('runSimBtn', () => {
-    const simRunsEl = $('simRuns');
-    const runs = Math.min(Math.max(parseInt(simRunsEl?.value) || 1000, 100), 10000);
-    runMonteCarlo({ runs });
-  });
-
-  const simRunsEl = $('simRuns');
-  if (simRunsEl) simRunsEl.addEventListener('input', function(e){ const value = parseInt(e.target.value); if (isNaN(value) || value < 100) e.target.value = 100; else if (value > 10000) e.target.value = 10000; });
-
-  const darkBtn = $('darkModeBtn');
-  if (darkBtn) {
-    darkBtn.addEventListener('click', () => {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('f1-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
-      darkBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark';
-      // re-render UI so getLogo() picks correct images
-      initEditor();
+    // totals / standings
+    function updateTotals() {
+      if (!DRIVERS || !state) return;
+      DRIVERS.forEach(d => {
+          if (!state[d.code]) return;
+          const addedSum = Object.values(state[d.code].added || {}).reduce((a,b) => a+b, 0);
+          const total = (state[d.code].base || 0) + addedSum;
+          const addedEl = document.getElementById('added-'+d.code);
+          const totalEl = document.getElementById('total-'+d.code);
+          if (addedEl) addedEl.innerText = '+' + addedSum;
+          if (totalEl) totalEl.innerText = total + ' pts';
+      });
       updateConstructorsAndDriversStandings();
-      renderSimResults();
+
+      // refresh deltas & selection so editor and standings update after any edit/randomize
+      try { refreshEditorDeltas(); } catch(e){ /* safe */ }
+      try { refreshConstructorDeltas(); } catch(e){ /* safe */ }
+      try { updateStandingsSelectionUI(); } catch(e){ /* safe */ }
+    }
+
+    function updateConstructorsAndDriversStandings(){
+      const cons = {};
+      CONSTRUCTORS.forEach(c=> cons[c] = {base:0, added:0, total:0});
+      DRIVERS.forEach(d=>{
+        const addedSum = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
+        if(!cons[d.team]) cons[d.team] = {base:0, added:0, total:0};
+        cons[d.team].base += d.base;
+        cons[d.team].added += addedSum;
+        cons[d.team].total += d.base + addedSum;
+      });
+
+      // drivers
+      const driversArr = DRIVERS.map(d=>{
+        const added = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
+        return {code:d.code, name:d.name, team:d.team, base:d.base, added, total: d.base + added};
+      }).sort((a,b)=>b.total-a.total || a.code.localeCompare(b.code));
+
+      const leaderTotal = driversArr.length ? driversArr[0].total : 0;
+
+      let html = `
+        <div style="margin-bottom:18px; width: 100%; max-width: 420px;">
+          <div style="font-weight:600;font-size:16px;margin-bottom:8px;">Drivers (top)</div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr><th style="width:1%">Pos</th><th>Driver</th><th style="text-align:right">Total</th><th style="text-align:right">Delta</th></tr>
+              </thead>
+              <tbody>
+                ${driversArr.map((d,i)=>{
+                  const delta = d.total === leaderTotal ? '—' : (d.total>leaderTotal? `+${d.total-leaderTotal}` : `-${leaderTotal - d.total}`);
+                  return `
+                  <tr data-driver="${d.code}" onclick="setDeltaReference('driver','${d.code.replace(/'/g,"\\'")}')">
+                    <td style="text-align:center;">${i+1}</td>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${getLogo(d.team)}" alt="${d.team}" style="height: 24px; width: 24px; margin: 0; object-fit: contain;">
+                        <div style="line-height: 1.2;">
+                          <div style="font-weight: 700; color: var(--text); font-size: 1.05em;">${d.code}</div>
+                          <div style="font-size: 0.85em; color: var(--muted); margin-top: 2px;">${d.team}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style='text-align:right'><b>${d.total} pts</b> <div class='small-note'>+${d.added}</div></td>
+                    <td style='text-align:right'><span class="small-note" data-stand-delta data-code="${d.code}" id="stand-delta-${d.code}">${delta}</span></td>
+                  </tr>
+                `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      document.getElementById('driverStandings').innerHTML = html;
+
+      // constructors
+      const consArr = Object.keys(cons).map(k=>({team:k, base:cons[k].base, added:cons[k].added, total:cons[k].total})).sort((a,b)=>b.total-a.total);
+      const consLeader = consArr.length ? consArr[0].total : 0;
+
+      let html2 = `
+        <div style="margin-bottom:18px; width: 100%; max-width: 420px;">
+          <div style="font-weight:600;font-size:16px;margin-bottom:8px;">Constructors</div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr><th style="width:1%">Pos</th><th>Constructor</th><th style="text-align:right">Total</th><th style="text-align:right">Delta</th></tr>
+              </thead>
+              <tbody>
+                ${consArr.map((c,i)=>{
+                  const delta = c.total === consLeader ? '—' : (c.total>consLeader? `+${c.total-consLeader}` : `-${consLeader - c.total}`);
+                  const safeTeam = c.team.replace(/"/g,'&quot;');
+                  return `
+                    <tr data-cons="${safeTeam}" onclick="setDeltaReference('team','${safeTeam.replace(/'/g,"\\'")}')">
+                      <td style="text-align:center;">${i+1}</td>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                          <img src="${getLogo(c.team)}" alt="${c.team}" style="height: 24px; width: 24px; margin: 0; object-fit: contain;">
+                          <div style="font-weight: 700; color: var(--text); font-size: 1.05em; white-space: nowrap;">${c.team}</div>
+                        </div>
+                      </td>
+                      <td style="text-align:right"><b>${Math.round(c.total)} pts</b> <div class='small-note'>+${Math.round(c.added)}</div></td>
+                      <td style="text-align:right"><span class="small-note" data-cons-delta data-team="${c.team}" id="cons-delta-${c.team.replace(/\s+/g,'_')}">${delta}</span></td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      document.getElementById('constructorStandings').innerHTML = html2;
+    }
+
+    function renderSimResults() {
+      if (!lastSimResult) return;
+      const ds = lastSimResult.driverStats;
+      const ts = lastSimResult.teamStats;
+
+      // STRICTLY SIDE-BY-SIDE FLEX CONTAINER
+      let html = `
+        <div style="display: flex; flex-direction: row; flex-wrap: nowrap; gap: 24px; width: max-content; max-width: 100%;">
+      `;
+
+      // ── DRIVERS TABLE ─────────────────────────────────────
+      html += `
+        <div style="flex: 0 1 auto; min-width: 0;">
+          <div style="font-weight:600; font-size:15px; margin-bottom:10px; color:var(--accent);">
+            Driver Probabilities
+          </div>
+          <div class="table-responsive">
+            <table style="width:100%; min-width:max-content;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">DRIVER</th>
+                  <th style="text-align:left;">TEAM</th>
+                  <th style="text-align:center;">CHAMP</th>
+                  <th style="text-align:center;">TOP 2</th>
+                  <th style="text-align:center;">TOP 3</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+
+      const driversWithPts = DRIVERS.map(d => {
+        const added = Object.values(state[d.code].added || {}).reduce((a, b) => a + b, 0);
+        return {
+          code: d.code,
+          team: d.team,
+          pts: d.base + added,
+          stats: ds[d.code] || { champ: 0, top2: 0, top3: 0 }
+        };
+      }).sort((a, b) => b.stats.champ - a.stats.champ);
+
+      driversWithPts.forEach(d => {
+        html += `
+          <tr>
+            <td>
+              <img src="${getLogo(d.team)}" alt="${d.team}" style="height:16px;vertical-align:middle;margin-right:4px;">
+              ${d.code}
+            </td>
+            <td style="color:var(--muted);">${d.team}</td>
+            <td style="text-align:center; font-weight:700; color:var(--text);">${d.stats.champ.toFixed(1)}%</td>
+            <td style="text-align:center;">${d.stats.top2.toFixed(1)}%</td>
+            <td style="text-align:center;">${d.stats.top3.toFixed(1)}%</td>
+          </tr>`;
+      });
+
+      html += `</tbody></table></div></div>`;
+
+      // ── CONSTRUCTORS TABLE ────────────────────────────────
+      html += `
+        <div style="flex: 0 1 auto; min-width: 0;">
+          <div style="font-weight:600; font-size:15px; margin-bottom:10px; color:var(--accent);">
+            Constructor Probabilities
+          </div>
+          <div class="table-responsive">
+            <table style="width:100%; min-width:max-content;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">CONSTRUCTOR</th>
+                  <th style="text-align:center;">CHAMP</th>
+                  <th style="text-align:center;">TOP 2</th>
+                  <th style="text-align:center;">TOP 3</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+
+      const consWithPts = Object.keys(ts)
+        .map(t => ({ team: t, stats: ts[t] }))
+        .sort((a, b) => b.stats.champ - a.stats.champ);
+
+      consWithPts.forEach(c => {
+        html += `
+          <tr>
+            <td>
+              <img src="${getLogo(c.team)}" alt="${c.team}" style="height:18px;vertical-align:middle;margin-right:4px;">
+              ${c.team}
+            </td>
+            <td style="text-align:center; font-weight:700; color:var(--text);">${c.stats.champ.toFixed(1)}%</td>
+            <td style="text-align:center;">${c.stats.top2.toFixed(1)}%</td>
+            <td style="text-align:center;">${c.stats.top3.toFixed(1)}%</td>
+          </tr>`;
+      });
+
+      html += `</tbody></table></div></div>`;
+
+      html += `</div>`; // Close flex container
+
+      document.getElementById('simTable').innerHTML = html;
+    }
+
+    // build table header from EVENTS (removes hard-coded MEX column)
+    function buildTableHeader() {
+      const thead = document.getElementById('driversHead');
+      if (!thead) return;
+      const evs = getVisibleEvents();
+      let html = '<tr><th>Driver</th>';
+      evs.forEach(ev => {
+        html += `<th data-event="${ev.id}">
+          <div class="hdr-cell">
+            ${ev.type === 'sprint' ? '<div class="hdr-main">Sprint</div>' : ''}
+            <div class="hdr-sub">${ev.label}</div>
+            <div class="hdr-flag">${COUNTRY_FLAGS[ev.id.split('-')[0]] || ''}</div>
+            <button class="clear-btn" title="Reset ${ev.label}">×</button>
+          </div>
+        </th>`;
+      });
+      html += '<th style="text-align:center; line-height:1.2;"><span style="font-size:0.85em; font-weight:normal; color:var(--muted)">Added</span><br>Total</th><th style="text-align:center;">Delta</th></tr>';
+      thead.innerHTML = html;
+
+      evs.forEach(ev => {
+        const btn = thead.querySelector(`th[data-event="${ev.id}"] .clear-btn`);
+        if (btn) btn.addEventListener('click', e => {
+          e.stopPropagation();
+          clearEvent(ev.id);
+        });
+      });
+    }
+
+    // --- bootstrap after DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      // Restore dark mode BEFORE initializing UI
+      const darkBtn = document.getElementById('darkModeBtn');
+      if (localStorage.getItem('f1-dark-mode') === '1') {
+        document.body.classList.add('dark-mode');
+        if (darkBtn) darkBtn.textContent = '☀️ Light';
+      }
+      
+      initializeState();
+      buildTableHeader();
+      initEditor();
+      attachEventListeners();
       updateTotals();
     });
-    log('bound darkModeBtn');
-    if (localStorage.getItem('f1-dark-mode') === '1') {
-      document.body.classList.add('dark-mode');
-      darkBtn.textContent = '☀️ Light';
+
+    function switchTab(tabName) {
+      const editorCard = document.getElementById('editorCard');
+      const simCard = document.getElementById('simCard');
+      const tabEditor = document.getElementById('tabEditor');
+      const tabSim = document.getElementById('tabSim');
+      if (!editorCard || !simCard || !tabEditor || !tabSim) return;
+
+      if (tabName === 'sim') {
+        tabSim.classList.add('active');
+        tabEditor.classList.remove('active');
+        editorCard.style.display = 'none';
+        simCard.style.display = 'block';
+      } else {
+        tabEditor.classList.add('active');
+        tabSim.classList.remove('active');
+        editorCard.style.display = 'block';
+        simCard.style.display = 'none';
+      }
     }
-  } else console.warn('[listeners] darkModeBtn missing');
+
+    // Replace the existing attachEventListeners() with this robust version
+    function attachEventListeners() {
+      const $ = id => document.getElementById(id);
+      const log = (m) => console.log('[listeners] ' + m);
+
+      // safe binder: uses handler if defined, otherwise a sensible fallback
+      function bindClick(id, handler, fallback) {
+        const el = $(id);
+        if (!el) { console.warn(`[listeners] ${id} missing`); return; }
+        if (typeof handler === 'function') {
+          el.addEventListener('click', handler);
+          log(`bound ${id}`);
+        } else if (typeof fallback === 'function') {
+          el.addEventListener('click', fallback);
+          console.warn(`[listeners] ${id} bound to fallback`);
+        } else {
+          el.addEventListener('click', () => console.warn(`[listeners] ${id} clicked but no handler available`));
+          console.warn(`[listeners] ${id} bound to noop`);
+        }
+      }
+
+      // tabs
+      bindClick('tabEditor', () => switchTab('editor'));
+      bindClick('tabSim', () => switchTab('sim'));
+
+      // reset: prefer resetAll if present, otherwise re-init state as fallback
+      bindClick('resetBtn',
+        typeof resetAll === 'function' ? resetAll : () => { initializeState(); buildTableHeader(); initEditor(); updateTotals(); console.warn('Used fallback reset'); }
+      );
+
+      // randomize
+      bindClick('randomBtn',
+        typeof randomize === 'function' ? () => randomize() : () => { console.warn('randomize() not available'); alert('Randomize not available'); }
+      );
+
+      // run simulation
+      bindClick('runSimBtn', () => {
+        const simRunsEl = $('simRuns');
+        const runs = Math.min(Math.max(parseInt(simRunsEl?.value) || 1000, 100), 10000);
+        runMonteCarlo({ runs });
+      });
+
+      // simRuns input guard
+      const simRunsEl = $('simRuns');
+      if (simRunsEl) {
+        simRunsEl.addEventListener('input', function(e){
+          const value = parseInt(e.target.value);
+          if (isNaN(value) || value < 100) e.target.value = 100;
+          else if (value > 10000) e.target.value = 10000;
+        });
+        log('bound simRuns input');
+      } else console.warn('[listeners] simRuns missing');
+
+      // dark mode toggle (safe)
+      const darkBtn = $('darkModeBtn');
+      if (darkBtn) {
+        darkBtn.addEventListener('click', () => {
+          document.body.classList.toggle('dark-mode');
+          localStorage.setItem('f1-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
+          darkBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark';
+          // re-render UI so getLogo() picks correct images
+          initEditor();
+          updateConstructorsAndDriversStandings();
+          renderSimResults();
+          updateTotals();
+        });
+        log('bound darkModeBtn');
+        if (localStorage.getItem('f1-dark-mode') === '1') {
+          document.body.classList.add('dark-mode');
+          darkBtn.textContent = '☀️ Light';
+        }
+      } else console.warn('[listeners] darkModeBtn missing');
+    }
+
+    // Diagnostic helpers — show uncaught errors and confirm listeners
+    (function enableDiagnostics(){
+      // visible overlay for the first error
+      const overlay = document.createElement('div');
+      overlay.id = 'js-error-overlay';
+      overlay.style = 'position:fixed;right:12px;bottom:12px;z-index:99999;background:#fff;color:#000;padding:10px 12px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.25);max-width:360px;font-family:Inter,sans-serif;font-size:13px;display:none;';
+      document.body?.appendChild(overlay);
+
+      function show(msg){
+        overlay.innerText = msg;
+        overlay.style.display = 'block';
+      }
+
+      window.addEventListener('error', function(evt){
+        try{ show('Error: ' + (evt.error?.message || evt.message || 'Unknown error')); }catch(e){ console.error(e); }
+        console.error('Unhandled error', evt.error || evt.message, evt);
+      });
+
+      window.addEventListener('unhandledrejection', function(evt){
+        try{ show('UnhandledRejection: ' + (evt.reason?.message || JSON.stringify(evt.reason) || evt.reason)); }catch(e){ console.error(e); }
+        console.error('Unhandled promise rejection', evt.reason);
+      });
+
+      // patch attachEventListeners to log when it runs
+      const origAttach = window.attachEventListeners;
+      window.attachEventListeners = function(...args){
+        console.log('attachEventListeners() starting');
+        try{
+          if (origAttach) origAttach.apply(this, args);
+          else {
+            // If attachEventListeners isn't defined yet, call existing in-file function later
+            console.warn('attachEventListeners not defined at patch time');
+          }
+          console.log('attachEventListeners() done');
+        }catch(err){
+          console.error('attachEventListeners error', err);
+          show('attachEventListeners error: ' + (err.message || err));
+          throw err;
+        }
+      };
+    })();
+
+    // utility: weighted shuffle (sampling without replacement)
+    function weightedShuffle(items, weights){
+      const list = items.slice();
+      const w = weights.slice();
+      const out = [];
+      while(list.length){
+        const total = w.reduce((a,b)=>a+b,0);
+        let r = Math.random() * total;
+        let idx = 0;
+        while(r > w[idx]) { r -= w[idx]; idx++; }
+        out.push(list[idx]);
+        list.splice(idx,1);
+        w.splice(idx,1);
+      }
+      return out;
+    }
+
+    function getRemainingEvents() {
+      return EVENTS.filter(ev => !ev.results);
+    }
+
+    function resetAll() {
+      // Re-apply base and hardcoded results without changing the visible page
+      DRIVERS.forEach(d => {
+          state[d.code] = { base: d.base, added: {} };
+      });
+
+      EVENTS.forEach(e => {
+          DRIVERS.forEach(d => {
+              let points = 0;
+              if (e.results) {
+                  const pos = e.results.indexOf(d.code);
+                  const pointsArr = e.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+                  if (pos !== -1 && pos < pointsArr.length) {
+                      points = pointsArr[pos];
+                  }
+              }
+              state[d.code].added[e.id] = points;
+          });
+      });
+
+      // Completely rebuild the UI so headers, dropdowns, and totals sync up perfectly
+      rebuildEditor();
+    }
+
+    // randomize editor (mutates state)
+    function randomize(biasStrength = 1.4, noise = 0.18, topCount = 6){
+      const codes = DRIVERS.map(d=>d.code);
+      // ensure state shape
+      codes.forEach(c => { if(!state[c]) state[c] = { base: 0, added: {} }; if(!state[c].added) state[c].added = {}; });
+
+      EVENTS.forEach(ev => {
+        const points = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+
+        // To remove bias, use equal weights for all drivers
+        const weights = codes.map(() => 1); // Equal probability for each driver to be in any position
+
+        const order = weightedShuffle(codes, weights);
+        order.forEach((code, idx) => {
+          const pts = points[idx] || 0;
+          state[code].added[ev.id] = pts;
+        });
+      });
+
+      updateTotals();
+      initEditor();
+    }
+
+    function runMonteCarlo({ runs = 1000 } = {}) {
+      runs = Math.max(100, Math.min(20000, runs || 1000));
+
+      const driverCounts = {};
+      DRIVERS.forEach(d => driverCounts[d.code] = {champ:0, top2:0, top3:0});
+      const teamCounts = {};
+      CONSTRUCTORS.forEach(t => teamCounts[t] = {champ:0, top2:0, top3:0});
+
+      // Backup current user predictions + past results
+      const savedState = JSON.parse(JSON.stringify(state));
+
+      const remainingEvents = getRemainingEvents();
+
+      for (let i = 0; i < runs; i++) {
+        // Start from exact current state (past results + YOUR manual predictions stay 100% fixed)
+        const simState = {};
+        DRIVERS.forEach(d => {
+          simState[d.code] = {
+            base: d.base,
+            added: JSON.parse(JSON.stringify(savedState[d.code]?.added || {}))
+          };
+        });
+
+        // ONLY randomize the remaining (future) races
+        remainingEvents.forEach(ev => {
+          const points = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+          const codes = DRIVERS.map(d => d.code);
+
+          // Weighted by current total points in THIS simulation (+5 baseline)
+          const weights = codes.map(code => {
+            const totalSoFar = simState[code].base +
+                              Object.values(simState[code].added || {}).reduce((a, b) => a + b, 0);
+            return Math.max(totalSoFar + 5, 5);
+          });
+
+          const order = weightedShuffle(codes, weights);
+
+          // REPLACE points (never add on top of existing values)
+          order.forEach((code, idx) => {
+            simState[code].added[ev.id] = points[idx] || 0;
+          });
+        });
+
+        // Final totals
+        const final = DRIVERS.map(d => ({
+          code: d.code,
+          team: d.team,
+          total: simState[d.code].base + Object.values(simState[d.code].added || {}).reduce((a, b) => a + b, 0)
+        })).sort((a, b) => b.total - a.total);
+
+        // Drivers
+        if (final[0]) driverCounts[final[0].code].champ++;
+        final.slice(0, 2).forEach(f => driverCounts[f.code].top2++);
+        final.slice(0, 3).forEach(f => driverCounts[f.code].top3++);
+
+        // Constructors
+        const consTotals = {};
+        CONSTRUCTORS.forEach(t => consTotals[t] = 0);
+        final.forEach(f => consTotals[f.team] += f.total);
+        const consArr = Object.keys(consTotals)
+          .map(t => ({team: t, total: consTotals[t]}))
+          .sort((a, b) => b.total - a.total);
+
+        if (consArr[0]) teamCounts[consArr[0].team].champ++;
+        consArr.slice(0, 2).forEach(c => teamCounts[c.team].top2++);
+        consArr.slice(0, 3).forEach(c => teamCounts[c.team].top3++);
+      }
+
+      // Calculate percentages
+      const driverStats = {};
+      Object.keys(driverCounts).forEach(code => {
+        driverStats[code] = {
+          champ: (100 * driverCounts[code].champ / runs),
+          top2:  (100 * driverCounts[code].top2  / runs),
+          top3:  (100 * driverCounts[code].top3  / runs)
+        };
+      });
+
+      const teamStats = {};
+      Object.keys(teamCounts).forEach(team => {
+        teamStats[team] = {
+          champ: (100 * teamCounts[team].champ / runs),
+          top2:  (100 * teamCounts[team].top2  / runs),
+          top3:  (100 * teamCounts[team].top3  / runs)
+        };
+      });
+
+      lastSimResult = { driverStats, teamStats };
+      renderSimResults();
+
+      // Nice status message
+      document.getElementById('simStatus').innerHTML = `
+        <small style="color:var(--muted)">
+          ✅ Simulated <b>${runs}</b> runs • <b>${remainingEvents.length}</b> future races randomized
+        </small>`;
+    }
+
+    // update attachEventListeners: ensure dark toggle re-renders logos and editor
+    function attachEventListeners() {
+      const $ = id => document.getElementById(id);
+      const log = (m) => console.log('[listeners] ' + m);
+
+      function bindClick(id, handler, fallback) {
+        const el = $(id);
+        if (!el) { console.warn(`[listeners] ${id} missing`); return; }
+        if (typeof handler === 'function') {
+          el.addEventListener('click', handler);
+          log(`bound ${id}`);
+        } else if (typeof fallback === 'function') {
+          el.addEventListener('click', fallback);
+          console.warn(`[listeners] ${id} bound to fallback`);
+        } else {
+          el.addEventListener('click', () => console.warn(`[listeners] ${id} clicked but no handler available`));
+          console.warn(`[listeners] ${id} bound to noop`);
+        }
+      }
+      bindClick('prevPageBtn', prevPage);
+      bindClick('nextPageBtn', nextPage);
+      // Page Size Dropdown Listener
+      const pageSizeEl = $('pageSizeSelect');
+      if (pageSizeEl) {
+        pageSizeEl.addEventListener('change', (e) => {
+          PAGE_SIZE = parseInt(e.target.value, 10);
+          // Snap back to the first race to avoid blank pages when increasing size
+          visibleStart = 0; 
+          rebuildEditor();
+        });
+        log('bound pageSizeSelect');
+      }
+      bindClick('tabEditor', () => switchTab('editor'));
+      bindClick('tabSim', () => switchTab('sim'));
+      bindClick('resetBtn', typeof resetAll === 'function' ? resetAll : () => { initializeState(); buildTableHeader(); initEditor(); updateTotals(); console.warn('Used fallback reset'); });
+      bindClick('randomBtn', () => randomize());
+      bindClick('runSimBtn', () => {
+        const simRunsEl = $('simRuns');
+        const runs = Math.min(Math.max(parseInt(simRunsEl?.value) || 1000, 100), 10000);
+        runMonteCarlo({ runs });
+      });
+
+      const simRunsEl = $('simRuns');
+      if (simRunsEl) simRunsEl.addEventListener('input', function(e){ const value = parseInt(e.target.value); if (isNaN(value) || value < 100) e.target.value = 100; else if (value > 10000) e.target.value = 10000; });
+
+      const darkBtn = $('darkModeBtn');
+      if (darkBtn) {
+        darkBtn.addEventListener('click', () => {
+          document.body.classList.toggle('dark-mode');
+          localStorage.setItem('f1-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
+          darkBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark';
+          initEditor();
+          updateConstructorsAndDriversStandings();
+          renderSimResults();
+          updateTotals();
+        });
+        log('bound darkModeBtn');
+        if (localStorage.getItem('f1-dark-mode') === '1') {
+          document.body.classList.add('dark-mode');
+          darkBtn.textContent = '☀️ Light';
+        }
+      } else console.warn('[listeners] darkModeBtn missing');
 }
     </script>
 </body>
 </html>
-
-
-
-
