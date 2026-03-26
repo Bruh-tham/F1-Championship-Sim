@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>F1 — Points Editor & Probability Simulator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="https://www.formula1.com/assets/home/_next/static/media/f1-logo-180.1db9e85b.png"/>
   <style>
   /* ===================== COLORS ===================== */
@@ -54,7 +54,16 @@
     border-radius: 12px; display: flex; flex-wrap: wrap; gap: 16px; 
     align-items: center; justify-content: space-between; 
   }
-  h1 { margin: 0; font-size: 18px; font-weight: 800; color: var(--text); }
+  
+  header h1 { 
+    margin: 0; 
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px; 
+    font-weight: 900; 
+    color: var(--text); 
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+  }
 
   .controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
   .page-nav { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
@@ -62,11 +71,13 @@
   .btn { 
     padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; 
     border: 1px solid var(--border); background: var(--card); color: var(--text); 
+    transition: all 0.2s;
   }
   .btn.primary { 
     background: linear-gradient(90deg, var(--accent), var(--accent2)); 
     color: #fff; border: none; 
   }
+  .btn.primary:hover { opacity: 0.9; transform: translateY(-1px); }
   
   .tabs { display: flex; gap: 6px; background: var(--surface); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
   .tab { padding: 8px 16px; border-radius: 6px; border: none; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
@@ -79,16 +90,35 @@
     padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); 
     background: var(--card); color: var(--text); font-weight: 600; font-family: inherit; cursor: pointer;
   }
-  table select { min-width: 60px; padding: 6px; }
+  table select { min-width: 60px; padding: 6px; text-align: center; }
 
   .small-note { font-size: 12px; color: var(--muted); font-weight: 500; }
   .pts { font-weight: 800; color: var(--text); }
   .hdr-cell { position: relative; text-align: center; }
   .hdr-cell .hdr-main { font-size: 10px; font-weight: 800; color: #ef4444; text-transform: uppercase; }
   .hdr-cell .hdr-sub  { font-size: 13px; margin-top: 2px; font-weight: 700; }
-  .hdr-cell .hdr-flag { font-size: 16px; margin-top: 2px; }
+  .hdr-cell .hdr-flag { font-size: 26px; margin-top: 4px; line-height: 1; }
   .clear-btn { position: absolute; top: 0; right: 0; background: transparent; border: none; color: var(--header-text); opacity: 0.4; font-size: 16px; cursor: pointer; }
   .clear-btn:hover { opacity: 1; color: var(--accent); }
+
+  /* ===================== MODAL STYLES ===================== */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 1000;
+    display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .modal-content {
+    width: 90%; max-width: 420px; padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .modal-content h3 {
+    margin-top: 0; margin-bottom: 12px;
+    font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 18px; color: var(--text);
+  }
+  .modal-content p { color: var(--muted); line-height: 1.5; margin-bottom: 24px; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
   /* ===================== DESKTOP AUTO-ADJUST LAYOUT ===================== */
   .layout { 
@@ -106,35 +136,33 @@
     border-radius: 12px; padding: 16px; 
   }
   
-  /* Mutual Decision Math */
   #editorCard, #simCard { 
     flex: 0 1 auto; 
     width: max-content; 
-    max-width: 65%; /* Keeps Editor from greedy expansion */
+    max-width: 65%; 
     min-width: 0; 
   }
   
   #standingsCard { 
     flex: 1 1 auto; 
     min-width: 0; 
-    max-width: 100%; /* CRITICAL: Prevents the card from breaking the screen */
+    max-width: 100%; 
   }
 
-  /* CRITICAL CONTAINED SWIPE: Side-by-side but native swipeable */
   .standings-flex { 
     display: flex; 
     flex-direction: row !important; 
     flex-wrap: nowrap !important; 
     gap: 20px; 
-    width: 100%; /* CRITICAL: Stays within the card */
-    overflow-x: auto; /* CRITICAL: Enables horizontal swiping */
-    padding-bottom: 8px; /* Room for scrollbar */
+    width: 100%; 
+    overflow-x: auto; 
+    padding-bottom: 8px; 
     -webkit-overflow-scrolling: touch;
   }
   
-  #driverStandings, #constructorStandings { 
+  #driverStandings, #constructorStandings, #driverSim, #constructorSim { 
     flex: 0 0 auto; 
-    width: max-content; /* Hugs text without stretching */
+    width: max-content; 
     min-width: 0; 
   }
 
@@ -154,7 +182,8 @@
 
   thead th { 
     background: var(--header-bg); color: var(--header-text); padding: 10px 12px; 
-    font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    font-family: 'Montserrat', sans-serif; /* Upgraded Font */
+    font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
     position: sticky; top: 0; z-index: 5; white-space: nowrap; 
     border-bottom: 2px solid var(--border); vertical-align: middle;
   }
@@ -165,17 +194,24 @@
   /* --- STICKY DRIVER COLUMN & HOVER --- */
   #driversHead th:first-child, #driversBody td:first-child { 
     position: sticky; left: 0; z-index: 10; border-right: 2px solid var(--border); 
-    background: var(--card); min-width: 160px; max-width: 200px; 
+    background-color: var(--card); 
+    min-width: 160px; max-width: 200px; 
   }
-  #driversHead th:first-child { z-index: 20; background: var(--header-bg); }
+  #driversHead th:first-child { z-index: 20; background-color: var(--header-bg); }
 
   tbody tr:nth-child(even) td { background: rgba(0, 0, 0, 0.015); }
   body.dark-mode tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
+  
+  tbody tr:nth-child(even) td:first-child { background-image: linear-gradient(rgba(0,0,0,0.015), rgba(0,0,0,0.015)); }
+  body.dark-mode tbody tr:nth-child(even) td:first-child { background-image: linear-gradient(rgba(255,255,255,0.015), rgba(255,255,255,0.015)); }
 
   tbody tr:hover td { background: var(--row-hover) !important; cursor: pointer; }
-  tbody tr:hover td:first-child { background: var(--row-hover) !important; }
+  
+  tbody tr:hover td:first-child { 
+    background-color: var(--card) !important;
+    background-image: linear-gradient(var(--row-hover), var(--row-hover)) !important;
+  }
 
-  /* Shrink Utility Columns */
   .standings-flex table th:nth-child(1), .standings-flex table td:nth-child(1),
   .standings-flex table th:nth-child(3), .standings-flex table td:nth-child(3),
   .standings-flex table th:nth-child(4), .standings-flex table td:nth-child(4) { 
@@ -184,7 +220,6 @@
 
   /* ===================== MOBILE OVERRIDES ===================== */
   @media (max-width: 992px) {
-    /* Wraps layout on laptops/tablets/phones to prevent horizontal crush */
     .layout { flex-wrap: wrap !important; }
     #editorCard, #simCard, #standingsCard { width: 100%; flex: 1 1 100%; max-width: 100%; }
   }
@@ -194,7 +229,6 @@
     header { flex-direction: column; align-items: stretch; text-align: center; }
     .tabs { justify-content: center; }
     #driversHead th:first-child, #driversBody td:first-child { min-width: 120px; }
-    /* Standings side-by-side swiping is already handled cleanly by .standings-flex */
   }
   </style>
 </head>
@@ -207,12 +241,10 @@
                 <button class="tab" id="tabSim">Probability Simulator</button>
             </div>
 
-            <!-- Dark mode toggle -->
             <button class="btn secondary" id="darkModeBtn" title="Toggle dark mode" style="margin-left:auto;">
               🌙 Dark
             </button>
 
-            <!-- Hamburger menu for mobile -->
             <button class="hamburger" id="hamburgerBtn" aria-label="Menu" style="display:none;">
               <span></span><span></span><span></span>
             </button>
@@ -230,7 +262,6 @@
                 <div class="page-nav" style="display: flex; align-items: center; gap: 8px;">
                   <button id="prevPageBtn" class="btn secondary">‹ Prev</button>
                   <select id="pageSizeSelect" style="min-width: 100px; font-weight: 600;">
-                    <option value="1">1 Race</option>
                     <option value="2">2 Races</option>
                     <option value="3" selected>3 Races</option>
                     <option value="4">4 Races</option>
@@ -241,11 +272,9 @@
                 <div class="table-responsive">
                   <table>
                     <thead id="driversHead">
-                        <!-- header will be built dynamically from EVENTS -->
-                    </thead>
+                        </thead>
                     <tbody id="driversBody">
-                        <!-- Drivers will be populated here by JavaScript -->
-                    </tbody>
+                        </tbody>
                   </table>
                 </div>
             </div>
@@ -258,8 +287,7 @@
                 <div id="simStatus"></div>
                 <div id="simSummary" style="margin-top:10px"></div>
                 <div id="simTable" class="stat-table" style="margin-top:10px">
-                    <!-- Simulation results will be populated here -->
-                </div>
+                    </div>
             </div>
 
             <div class="card" id="standingsCard">
@@ -270,6 +298,16 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="alertModal" class="modal-overlay">
+      <div class="modal-content card">
+        <h3>Board Fully Predicted</h3>
+        <p>All upcoming events have already been assigned values! Please reset your predictions if you would like to randomize again.</p>
+        <div style="text-align: right;">
+          <button class="btn primary" id="closeModalBtn">Got it</button>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -361,7 +399,6 @@
       "Cadillac": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/cadillac/2026cadillaclogo.webp",
     };
 
-    // add dark-mode specific logos and helper to pick correct logo
     const TEAM_LOGOS_DARK = {
       "McLaren": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/mclaren/2026mclarenlogo.webp",
       "Red Bull": "https://media.formula1.com/image/upload/c_lfill,w_48/q_auto/v1740000000/common/f1/2026/redbullracing/2026redbullracinglogo.webp",
@@ -405,7 +442,7 @@
 
     // visible window state
 let visibleStart = 0;
-let PAGE_SIZE = 4;
+let PAGE_SIZE = 3; 
 
 function getVisibleEvents() {
   return EVENTS.slice(visibleStart, visibleStart + PAGE_SIZE);
@@ -435,19 +472,17 @@ function clearEvent(eventId) {
 function rebuildEditor() {
   buildTableHeader();
   initEditor();
-  updateTotals();          // deltas/standings rely on the new header
+  updateTotals();
 }
 
     function getLogo(team){
-      // prefer dark logos when dark-mode is active
       if (document?.body?.classList?.contains('dark-mode')) {
         return TEAM_LOGOS_DARK[team] || TEAM_LOGOS[team] || '';
       }
       return TEAM_LOGOS[team] || '';
     }
 
-    // delta reference state (null = leader)
-    let deltaRef = null; // {type: 'driver'|'team', id: 'VER'|'McLaren'} or null
+    let deltaRef = null;
 
     function getDriverTotal(code){
       const base = state[code]?.base || DRIVERS.find(d=>d.code===code)?.base || 0;
@@ -461,21 +496,17 @@ function rebuildEditor() {
     }
 
     function setDeltaReference(type, id){
-      // toggle: clicking same selection clears to leader
       if (deltaRef && deltaRef.type === type && deltaRef.id === id){
         deltaRef = null;
       } else {
         deltaRef = {type, id};
       }
-      // refresh delta displays and visual selection
       refreshEditorDeltas();
       refreshConstructorDeltas();
-      // update highlight on standings rows
       updateStandingsSelectionUI();
     }
 
     function updateStandingsSelectionUI(){
-      // remove previous selection classes
       document.querySelectorAll('#driverStandings tr, #constructorStandings tr').forEach(tr=> tr.classList.remove('selected-row'));
       if(!deltaRef) return;
       if(deltaRef.type === 'driver'){
@@ -489,10 +520,8 @@ function rebuildEditor() {
     }
 
     function refreshEditorDeltas(){
-      // compute reference value
       let refVal = null;
       if(!deltaRef){
-        // default leader
         const totals = DRIVERS.map(d=> getDriverTotal(d.code));
         refVal = Math.max(...totals,0);
       } else if(deltaRef.type === 'driver'){
@@ -506,16 +535,13 @@ function rebuildEditor() {
         if(!el) return;
         const val = getDriverTotal(d.code) - refVal;
         if(deltaRef && deltaRef.type==='team'){
-          // when comparing to team, show driver vs team (signed)
           el.innerText = val === 0 ? '—' : (val > 0 ? `+${val}` : `${val}`);
         } else {
-          // when comparing to driver (or leader), show relative sign (positive = ahead)
           el.innerText = deltaRef && deltaRef.type==='driver' && d.code === deltaRef.id ? '—' :
                         (!deltaRef && getDriverTotal(d.code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
         }
       });
 
-      // also refresh standings table deltas
       document.querySelectorAll('#driverStandings [data-stand-delta]').forEach(span=>{
         const code = span.dataset.code;
         const val = getDriverTotal(code) - refVal;
@@ -527,13 +553,11 @@ function rebuildEditor() {
     function refreshConstructorDeltas(){
       let refVal = null;
       if(!deltaRef){
-        // default leader constructor
         const consTotals = CONSTRUCTORS.map(c=> getConstructorTotal(c));
         refVal = Math.max(...consTotals,0);
       } else if(deltaRef.type === 'team'){
         refVal = getConstructorTotal(deltaRef.id);
       } else {
-        // driver selected => compare constructors to driver total
         refVal = getDriverTotal(deltaRef.id);
       }
 
@@ -545,11 +569,9 @@ function rebuildEditor() {
       });
     }
 
-    // --- app state (single declaration)
     let state = {};
     let lastSimResult = null;
 
-    // --- helpers for options
     function createRaceOptions(){
       const opts = [{v:'0',t:'0'}];
       for(let i=0;i<RACE_POINTS.length;i++) opts.push({v:RACE_POINTS[i].toString(), t:`P${i+1} (${RACE_POINTS[i]} pts)`});
@@ -563,7 +585,6 @@ function rebuildEditor() {
     const raceOpts = createRaceOptions();
     const sprintOpts = createSprintOptions();
 
-    // --- init / UI building
     function initializeState() {
       state = {};
       let firstEmptyIndex = -1;
@@ -573,7 +594,6 @@ function rebuildEditor() {
       });
 
       EVENTS.forEach((e, index) => {
-          // Find the first event that does NOT have hardcoded results
           if (!e.results && firstEmptyIndex === -1) {
               firstEmptyIndex = index;
           }
@@ -587,16 +607,13 @@ function rebuildEditor() {
                       points = pointsArr[pos];
                   }
               }
-              // This ensures state matches the hardcoding for the UI dropdowns
               state[d.code].added[e.id] = points;
           });
       });
 
-      // Set navigation: Start at the first incomplete race
       if (firstEmptyIndex !== -1) {
           visibleStart = firstEmptyIndex;
       } else {
-          // If all races are done, show the last page
           visibleStart = Math.max(0, EVENTS.length - PAGE_SIZE);
       }
     }
@@ -616,7 +633,6 @@ function rebuildEditor() {
 
       driversArr.forEach(d => {
         const tr = document.createElement('tr');
-        // Editor Driver Column: Stacked Code, Name (No wrap), Team
         tr.innerHTML = `<td>
                           <div style="display: flex; align-items: center; gap: 10px;">
                             <img src="${getLogo(d.team)}" alt="${d.team}" style="height: 26px; width: 26px; margin: 0; object-fit: contain;">
@@ -639,7 +655,14 @@ function rebuildEditor() {
             sel.appendChild(op);
           });
           sel.value = (state[d.code].added[ev.id] || 0).toString();
+          
           sel.addEventListener('change', onSelectChange);
+          sel.addEventListener('focus', (e) => expandSelect(e.target));
+          sel.addEventListener('blur', (e) => {
+              expandSelect(e.target);
+              setSelectToCompact(e.target);
+          });
+
           td.appendChild(sel);
           tr.appendChild(td);
         });
@@ -656,7 +679,55 @@ function rebuildEditor() {
       });
     }
 
-    // selection change (with kick/override logic)
+    // --- Dropdown Label Logic ---
+    function expandSelect(sel) {
+      const evId = sel.dataset.event;
+      const ev = EVENTS.find(e => e.id === evId);
+      if(!ev) return;
+      const pointsArr = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+      
+      const pointHolders = {};
+      DRIVERS.forEach(d => {
+        const pts = state[d.code]?.added[evId] || 0;
+        if (pts > 0) pointHolders[pts] = d.code;
+      });
+
+      Array.from(sel.options).forEach(op => {
+        const val = Number(op.value);
+        if (val === 0) { op.text = '0'; return; }
+        const pos = pointsArr.indexOf(val) + 1;
+        if (pointHolders[val]) {
+          op.text = `P${pos} (${pointHolders[val]})`;
+        } else {
+          op.text = `P${pos} (${val} pts)`;
+        }
+      });
+    }
+
+    function setSelectToCompact(sel) {
+      const val = Number(sel.value);
+      if (val === 0) return;
+      const evId = sel.dataset.event;
+      const ev = EVENTS.find(e => e.id === evId);
+      if(!ev) return;
+      const pointsArr = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+      const pos = pointsArr.indexOf(val) + 1;
+
+      const selectedOpt = sel.options[sel.selectedIndex];
+      if (selectedOpt) {
+        selectedOpt.text = `P${pos} (${val} pts)`; 
+      }
+    }
+
+    function updateDropdownLabels() {
+      document.querySelectorAll('table select').forEach(sel => {
+        expandSelect(sel);
+        if (document.activeElement !== sel) {
+          setSelectToCompact(sel);
+        }
+      });
+    }
+
     function onSelectChange(e) {
       const sel = e.currentTarget;
       const code = sel.dataset.code;
@@ -665,27 +736,22 @@ function rebuildEditor() {
 
       if (!state[code]) state[code] = {base: 0, added: {}};
 
-      // KICK LOGIC
       if (val > 0) {
           Object.keys(state).forEach(otherCode => {
               if (otherCode !== code && state[otherCode].added[ev] === val) {
-                  // Kick the other guy
                   state[otherCode].added[ev] = 0;
-                  
-                  // Find that guy's dropdown in the DOM and reset it visually
                   const otherSel = document.querySelector(`select[data-code="${otherCode}"][data-event="${ev}"]`);
                   if (otherSel) {
-                      otherSel.value = "0";
+                      otherSel.value = "0"; 
                   }
               }
           });
       }
 
       state[code].added[ev] = val;
-      updateTotals(); // Recalculate standings
+      updateTotals(); 
   }
 
-    // totals / standings
     function updateTotals() {
       if (!DRIVERS || !state) return;
       DRIVERS.forEach(d => {
@@ -699,10 +765,10 @@ function rebuildEditor() {
       });
       updateConstructorsAndDriversStandings();
 
-      // refresh deltas & selection so editor and standings update after any edit/randomize
-      try { refreshEditorDeltas(); } catch(e){ /* safe */ }
-      try { refreshConstructorDeltas(); } catch(e){ /* safe */ }
-      try { updateStandingsSelectionUI(); } catch(e){ /* safe */ }
+      try { refreshEditorDeltas(); } catch(e){ }
+      try { refreshConstructorDeltas(); } catch(e){ }
+      try { updateStandingsSelectionUI(); } catch(e){ }
+      try { updateDropdownLabels(); } catch(e){ }
     }
 
     function updateConstructorsAndDriversStandings(){
@@ -716,7 +782,6 @@ function rebuildEditor() {
         cons[d.team].total += d.base + addedSum;
       });
 
-      // drivers
       const driversArr = DRIVERS.map(d=>{
         const added = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
         return {code:d.code, name:d.name, team:d.team, base:d.base, added, total: d.base + added};
@@ -759,7 +824,6 @@ function rebuildEditor() {
       `;
       document.getElementById('driverStandings').innerHTML = html;
 
-      // constructors
       const consArr = Object.keys(cons).map(k=>({team:k, base:cons[k].base, added:cons[k].added, total:cons[k].total})).sort((a,b)=>b.total-a.total);
       const consLeader = consArr.length ? consArr[0].total : 0;
 
@@ -802,14 +866,11 @@ function rebuildEditor() {
       const ds = lastSimResult.driverStats;
       const ts = lastSimResult.teamStats;
 
-      // STRICTLY SIDE-BY-SIDE FLEX CONTAINER
-      let html = `
-        <div style="display: flex; flex-direction: row; flex-wrap: nowrap; gap: 24px; width: max-content; max-width: 100%;">
-      `;
+      let html = `<div class="standings-flex">`;
 
       // ── DRIVERS TABLE ─────────────────────────────────────
       html += `
-        <div style="flex: 0 1 auto; min-width: 0;">
+        <div id="driverSim" style="flex: 0 0 auto; width: max-content; min-width: 0;">
           <div style="font-weight:600; font-size:15px; margin-bottom:10px; color:var(--accent);">
             Driver Probabilities
           </div>
@@ -855,7 +916,7 @@ function rebuildEditor() {
 
       // ── CONSTRUCTORS TABLE ────────────────────────────────
       html += `
-        <div style="flex: 0 1 auto; min-width: 0;">
+        <div id="constructorSim" style="flex: 0 0 auto; width: max-content; min-width: 0;">
           <div style="font-weight:600; font-size:15px; margin-bottom:10px; color:var(--accent);">
             Constructor Probabilities
           </div>
@@ -889,14 +950,11 @@ function rebuildEditor() {
           </tr>`;
       });
 
-      html += `</tbody></table></div></div>`;
-
-      html += `</div>`; // Close flex container
+      html += `</tbody></table></div></div></div>`; 
 
       document.getElementById('simTable').innerHTML = html;
     }
 
-    // build table header from EVENTS (removes hard-coded MEX column)
     function buildTableHeader() {
       const thead = document.getElementById('driversHead');
       if (!thead) return;
@@ -924,9 +982,7 @@ function rebuildEditor() {
       });
     }
 
-    // --- bootstrap after DOM ready
     document.addEventListener('DOMContentLoaded', () => {
-      // Restore dark mode BEFORE initializing UI
       const darkBtn = document.getElementById('darkModeBtn');
       if (localStorage.getItem('f1-dark-mode') === '1') {
         document.body.classList.add('dark-mode');
@@ -937,7 +993,7 @@ function rebuildEditor() {
       buildTableHeader();
       initEditor();
       attachEventListeners();
-      updateTotals();
+      updateTotals(); 
     });
 
     function switchTab(tabName) {
@@ -960,136 +1016,24 @@ function rebuildEditor() {
       }
     }
 
-    // Replace the existing attachEventListeners() with this robust version
-    function attachEventListeners() {
-      const $ = id => document.getElementById(id);
-      const log = (m) => console.log('[listeners] ' + m);
-
-      // safe binder: uses handler if defined, otherwise a sensible fallback
-      function bindClick(id, handler, fallback) {
-        const el = $(id);
-        if (!el) { console.warn(`[listeners] ${id} missing`); return; }
-        if (typeof handler === 'function') {
-          el.addEventListener('click', handler);
-          log(`bound ${id}`);
-        } else if (typeof fallback === 'function') {
-          el.addEventListener('click', fallback);
-          console.warn(`[listeners] ${id} bound to fallback`);
-        } else {
-          el.addEventListener('click', () => console.warn(`[listeners] ${id} clicked but no handler available`));
-          console.warn(`[listeners] ${id} bound to noop`);
-        }
-      }
-
-      // tabs
-      bindClick('tabEditor', () => switchTab('editor'));
-      bindClick('tabSim', () => switchTab('sim'));
-
-      // reset: prefer resetAll if present, otherwise re-init state as fallback
-      bindClick('resetBtn',
-        typeof resetAll === 'function' ? resetAll : () => { initializeState(); buildTableHeader(); initEditor(); updateTotals(); console.warn('Used fallback reset'); }
-      );
-
-      // randomize
-      bindClick('randomBtn',
-        typeof randomize === 'function' ? () => randomize() : () => { console.warn('randomize() not available'); alert('Randomize not available'); }
-      );
-
-      // run simulation
-      bindClick('runSimBtn', () => {
-        const simRunsEl = $('simRuns');
-        const runs = Math.min(Math.max(parseInt(simRunsEl?.value) || 1000, 100), 10000);
-        runMonteCarlo({ runs });
-      });
-
-      // simRuns input guard
-      const simRunsEl = $('simRuns');
-      if (simRunsEl) {
-        simRunsEl.addEventListener('input', function(e){
-          const value = parseInt(e.target.value);
-          if (isNaN(value) || value < 100) e.target.value = 100;
-          else if (value > 10000) e.target.value = 10000;
-        });
-        log('bound simRuns input');
-      } else console.warn('[listeners] simRuns missing');
-
-      // dark mode toggle (safe)
-      const darkBtn = $('darkModeBtn');
-      if (darkBtn) {
-        darkBtn.addEventListener('click', () => {
-          document.body.classList.toggle('dark-mode');
-          localStorage.setItem('f1-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
-          darkBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark';
-          // re-render UI so getLogo() picks correct images
-          initEditor();
-          updateConstructorsAndDriversStandings();
-          renderSimResults();
-          updateTotals();
-        });
-        log('bound darkModeBtn');
-        if (localStorage.getItem('f1-dark-mode') === '1') {
-          document.body.classList.add('dark-mode');
-          darkBtn.textContent = '☀️ Light';
-        }
-      } else console.warn('[listeners] darkModeBtn missing');
-    }
-
-    // Diagnostic helpers — show uncaught errors and confirm listeners
-    (function enableDiagnostics(){
-      // visible overlay for the first error
-      const overlay = document.createElement('div');
-      overlay.id = 'js-error-overlay';
-      overlay.style = 'position:fixed;right:12px;bottom:12px;z-index:99999;background:#fff;color:#000;padding:10px 12px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.25);max-width:360px;font-family:Inter,sans-serif;font-size:13px;display:none;';
-      document.body?.appendChild(overlay);
-
-      function show(msg){
-        overlay.innerText = msg;
-        overlay.style.display = 'block';
-      }
-
-      window.addEventListener('error', function(evt){
-        try{ show('Error: ' + (evt.error?.message || evt.message || 'Unknown error')); }catch(e){ console.error(e); }
-        console.error('Unhandled error', evt.error || evt.message, evt);
-      });
-
-      window.addEventListener('unhandledrejection', function(evt){
-        try{ show('UnhandledRejection: ' + (evt.reason?.message || JSON.stringify(evt.reason) || evt.reason)); }catch(e){ console.error(e); }
-        console.error('Unhandled promise rejection', evt.reason);
-      });
-
-      // patch attachEventListeners to log when it runs
-      const origAttach = window.attachEventListeners;
-      window.attachEventListeners = function(...args){
-        console.log('attachEventListeners() starting');
-        try{
-          if (origAttach) origAttach.apply(this, args);
-          else {
-            // If attachEventListeners isn't defined yet, call existing in-file function later
-            console.warn('attachEventListeners not defined at patch time');
-          }
-          console.log('attachEventListeners() done');
-        }catch(err){
-          console.error('attachEventListeners error', err);
-          show('attachEventListeners error: ' + (err.message || err));
-          throw err;
-        }
-      };
-    })();
-
-    // utility: weighted shuffle (sampling without replacement)
     function weightedShuffle(items, weights){
       const list = items.slice();
       const w = weights.slice();
       const out = [];
       while(list.length){
         const total = w.reduce((a,b)=>a+b,0);
+        if (total <= 0) break;
         let r = Math.random() * total;
         let idx = 0;
-        while(r > w[idx]) { r -= w[idx]; idx++; }
+        while(r >= w[idx] && idx < w.length - 1) { 
+            r -= w[idx]; 
+            idx++; 
+        }
         out.push(list[idx]);
         list.splice(idx,1);
         w.splice(idx,1);
       }
+      while(list.length) out.push(list.shift());
       return out;
     }
 
@@ -1098,7 +1042,6 @@ function rebuildEditor() {
     }
 
     function resetAll() {
-      // Re-apply base and hardcoded results without changing the visible page
       DRIVERS.forEach(d => {
           state[d.code] = { base: d.base, added: {} };
       });
@@ -1117,22 +1060,26 @@ function rebuildEditor() {
           });
       });
 
-      // Completely rebuild the UI so headers, dropdowns, and totals sync up perfectly
       rebuildEditor();
     }
 
-    // randomize editor (mutates state)
-    function randomize(biasStrength = 1.4, noise = 0.18, topCount = 6){
+    function randomize(){
       const codes = DRIVERS.map(d=>d.code);
-      // ensure state shape
       codes.forEach(c => { if(!state[c]) state[c] = { base: 0, added: {} }; if(!state[c].added) state[c].added = {}; });
 
-      EVENTS.forEach(ev => {
+      const eventsToRandomize = getRemainingEvents().filter(ev => {
+        return !DRIVERS.some(d => (state[d.code]?.added[ev.id] || 0) > 0);
+      });
+
+      if (eventsToRandomize.length === 0) {
+        // Show custom modal instead of stock alert
+        document.getElementById('alertModal').style.display = 'flex';
+        return;
+      }
+
+      eventsToRandomize.forEach(ev => {
         const points = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
-
-        // To remove bias, use equal weights for all drivers
-        const weights = codes.map(() => 1); // Equal probability for each driver to be in any position
-
+        const weights = codes.map(() => 1); 
         const order = weightedShuffle(codes, weights);
         order.forEach((code, idx) => {
           const pts = points[idx] || 0;
@@ -1140,8 +1087,7 @@ function rebuildEditor() {
         });
       });
 
-      updateTotals();
-      initEditor();
+      rebuildEditor();
     }
 
     function runMonteCarlo({ runs = 1000 } = {}) {
@@ -1152,13 +1098,13 @@ function rebuildEditor() {
       const teamCounts = {};
       CONSTRUCTORS.forEach(t => teamCounts[t] = {champ:0, top2:0, top3:0});
 
-      // Backup current user predictions + past results
       const savedState = JSON.parse(JSON.stringify(state));
-
-      const remainingEvents = getRemainingEvents();
+      
+      const eventsToSimulate = getRemainingEvents().filter(ev => {
+        return !DRIVERS.some(d => (savedState[d.code]?.added[ev.id] || 0) > 0);
+      });
 
       for (let i = 0; i < runs; i++) {
-        // Start from exact current state (past results + YOUR manual predictions stay 100% fixed)
         const simState = {};
         DRIVERS.forEach(d => {
           simState[d.code] = {
@@ -1167,39 +1113,33 @@ function rebuildEditor() {
           };
         });
 
-        // ONLY randomize the remaining (future) races
-        remainingEvents.forEach(ev => {
+        eventsToSimulate.forEach(ev => {
           const points = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
           const codes = DRIVERS.map(d => d.code);
 
-          // Weighted by current total points in THIS simulation (+5 baseline)
           const weights = codes.map(code => {
             const totalSoFar = simState[code].base +
                               Object.values(simState[code].added || {}).reduce((a, b) => a + b, 0);
-            return Math.max(totalSoFar + 5, 5);
+            return Math.pow(Math.max(totalSoFar, 0) + 10, 1.2); 
           });
 
           const order = weightedShuffle(codes, weights);
 
-          // REPLACE points (never add on top of existing values)
           order.forEach((code, idx) => {
             simState[code].added[ev.id] = points[idx] || 0;
           });
         });
 
-        // Final totals
         const final = DRIVERS.map(d => ({
           code: d.code,
           team: d.team,
           total: simState[d.code].base + Object.values(simState[d.code].added || {}).reduce((a, b) => a + b, 0)
         })).sort((a, b) => b.total - a.total);
 
-        // Drivers
         if (final[0]) driverCounts[final[0].code].champ++;
         final.slice(0, 2).forEach(f => driverCounts[f.code].top2++);
         final.slice(0, 3).forEach(f => driverCounts[f.code].top3++);
 
-        // Constructors
         const consTotals = {};
         CONSTRUCTORS.forEach(t => consTotals[t] = 0);
         final.forEach(f => consTotals[f.team] += f.total);
@@ -1212,7 +1152,6 @@ function rebuildEditor() {
         consArr.slice(0, 3).forEach(c => teamCounts[c.team].top3++);
       }
 
-      // Calculate percentages
       const driverStats = {};
       Object.keys(driverCounts).forEach(code => {
         driverStats[code] = {
@@ -1234,49 +1173,47 @@ function rebuildEditor() {
       lastSimResult = { driverStats, teamStats };
       renderSimResults();
 
-      // Nice status message
       document.getElementById('simStatus').innerHTML = `
         <small style="color:var(--muted)">
-          ✅ Simulated <b>${runs}</b> runs • <b>${remainingEvents.length}</b> future races randomized
+          ✅ Simulated <b>${runs}</b> runs • <b>${eventsToSimulate.length}</b> unpredicted future races randomized
         </small>`;
     }
 
-    // update attachEventListeners: ensure dark toggle re-renders logos and editor
     function attachEventListeners() {
       const $ = id => document.getElementById(id);
-      const log = (m) => console.log('[listeners] ' + m);
 
       function bindClick(id, handler, fallback) {
         const el = $(id);
-        if (!el) { console.warn(`[listeners] ${id} missing`); return; }
+        if (!el) { return; }
         if (typeof handler === 'function') {
           el.addEventListener('click', handler);
-          log(`bound ${id}`);
         } else if (typeof fallback === 'function') {
           el.addEventListener('click', fallback);
-          console.warn(`[listeners] ${id} bound to fallback`);
-        } else {
-          el.addEventListener('click', () => console.warn(`[listeners] ${id} clicked but no handler available`));
-          console.warn(`[listeners] ${id} bound to noop`);
-        }
+        } 
       }
+      
       bindClick('prevPageBtn', prevPage);
       bindClick('nextPageBtn', nextPage);
-      // Page Size Dropdown Listener
+      
       const pageSizeEl = $('pageSizeSelect');
       if (pageSizeEl) {
         pageSizeEl.addEventListener('change', (e) => {
           PAGE_SIZE = parseInt(e.target.value, 10);
-          // Snap back to the first race to avoid blank pages when increasing size
           visibleStart = 0; 
           rebuildEditor();
         });
-        log('bound pageSizeSelect');
       }
+      
       bindClick('tabEditor', () => switchTab('editor'));
       bindClick('tabSim', () => switchTab('sim'));
-      bindClick('resetBtn', typeof resetAll === 'function' ? resetAll : () => { initializeState(); buildTableHeader(); initEditor(); updateTotals(); console.warn('Used fallback reset'); });
+      bindClick('resetBtn', typeof resetAll === 'function' ? resetAll : () => { initializeState(); buildTableHeader(); initEditor(); updateTotals(); });
       bindClick('randomBtn', () => randomize());
+      
+      // Close Modal logic
+      bindClick('closeModalBtn', () => {
+        document.getElementById('alertModal').style.display = 'none';
+      });
+
       bindClick('runSimBtn', () => {
         const simRunsEl = $('simRuns');
         const runs = Math.min(Math.max(parseInt(simRunsEl?.value) || 1000, 100), 10000);
@@ -1297,13 +1234,12 @@ function rebuildEditor() {
           renderSimResults();
           updateTotals();
         });
-        log('bound darkModeBtn');
         if (localStorage.getItem('f1-dark-mode') === '1') {
           document.body.classList.add('dark-mode');
           darkBtn.textContent = '☀️ Light';
         }
-      } else console.warn('[listeners] darkModeBtn missing');
-}
+      }
+    }
     </script>
 </body>
 </html>
