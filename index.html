@@ -358,7 +358,7 @@
         {id:'australia', label:'AUS GP', type:'race', results: ['RUS','ANT','LEC','HAM','NOR','VER','BEA','LIN','BOR','GAS']},
         {id:'china-sprint', label:'CHN GP', type:'sprint', results: ['RUS','LEC','HAM','NOR','ANT','PIA','LAW','BEA']},
         {id:'china-race', label:'CHN GP', type:'race', results: ['ANT','RUS','HAM','LEC','BEA','GAS','LAW','HAD','SAI','COL']},
-        {id:'japan', label:'JPN GP', type:'race'},
+        {id:'japan', label:'JPN GP', type:'race', results: ['ANT','PIA','LEC','RUS','NOR','HAM','GAS','VER','LAW','OCO']},
         {id:'miami-sprint', label:'MIA GP', type:'sprint'},
         {id:'miami-race', label:'MIA GP', type:'race'},
         {id:'canada-sprint', label:'CAN GP', type:'sprint'},
@@ -572,6 +572,25 @@ function rebuildEditor() {
     let state = {};
     let lastSimResult = null;
 
+    function getInitialPoints(code) {
+      let pts = 0;
+      EVENTS.forEach(e => {
+        if (e.results) {
+            const pos = e.results.indexOf(code);
+            const pointsArr = e.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+            if (pos !== -1 && pos < pointsArr.length) {
+              pts += pointsArr[pos];
+            }
+          }
+      });
+      const base = DRIVERS.find(d => d.code === code)?.base || 0;
+      return base + pts;
+    }
+
+    function getInitialConstructorPoints(team) {
+      return DRIVERS.filter(d => d.team === team).reduce((sum, d) => sum + getInitialPoints(d.code), 0);
+    }
+
     function createRaceOptions(){
       const opts = [{v:'0',t:'0'}];
       for(let i=0;i<RACE_POINTS.length;i++) opts.push({v:RACE_POINTS[i].toString(), t:`P${i+1} (${RACE_POINTS[i]} pts)`});
@@ -625,8 +644,10 @@ function rebuildEditor() {
 
       const evs = getVisibleEvents();
       const driversArr = DRIVERS.map(d => {
-        const added = Object.values(state[d.code]?.added || {}).reduce((a,b)=>a+b,0);
-        return { ...d, added, total: (state[d.code]?.base||d.base) + added };
+        const addedSum = Object.values(state[d.code]?.added || {}).reduce((a,b)=>a+b,0);
+        const total = (state[d.code]?.base||d.base) + addedSum;
+        const diff = total - getInitialPoints(d.code);
+        return { ...d, diff, total };
       }).sort((a,b)=>b.total - a.total);
 
       const leaderTotal = driversArr[0]?.total || 0;
@@ -666,15 +687,16 @@ function rebuildEditor() {
           td.appendChild(sel);
           tr.appendChild(td);
         });
+        
+        // Safely calculate the delta string outside the template literal
+        const deltaText = d.total === leaderTotal ? '—' : 
+                          (d.total > leaderTotal ? '+' + (d.total - leaderTotal) : '-' + (leaderTotal - d.total));
+
         tr.insertAdjacentHTML('beforeend', `<td style="text-align:center;">
-                          <div class="small-note" id="added-${d.code}">+${d.added}</div>
+                          <div class="small-note" id="added-${d.code}">${d.diff >= 0 ? '+' + d.diff : d.diff}</div>
                           <div class="pts" id="total-${d.code}">${d.total} pts</div>
                         </td>
-                        <td style="text-align:center;"><span id="delta-${d.code}" class="small-note">${
-                              d.total === leaderTotal ? '—' :
-                              (d.total > leaderTotal ? `+${d.total - leaderTotal}` :
-                                                        `-${leaderTotal - d.total}`)
-                            }</span></td>`);
+                        <td style="text-align:center;"><span id="delta-${d.code}" class="small-note">${deltaText}</span></td>`);
         tbody.appendChild(tr);
       });
     }
@@ -758,9 +780,11 @@ function rebuildEditor() {
           if (!state[d.code]) return;
           const addedSum = Object.values(state[d.code].added || {}).reduce((a,b) => a+b, 0);
           const total = (state[d.code].base || 0) + addedSum;
+          const diff = total - getInitialPoints(d.code);
+          
           const addedEl = document.getElementById('added-'+d.code);
           const totalEl = document.getElementById('total-'+d.code);
-          if (addedEl) addedEl.innerText = '+' + addedSum;
+          if (addedEl) addedEl.innerText = diff >= 0 ? '+' + diff : diff;
           if (totalEl) totalEl.innerText = total + ' pts';
       });
       updateConstructorsAndDriversStandings();
@@ -783,8 +807,10 @@ function rebuildEditor() {
       });
 
       const driversArr = DRIVERS.map(d=>{
-        const added = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
-        return {code:d.code, name:d.name, team:d.team, base:d.base, added, total: d.base + added};
+        const addedSum = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
+        const total = d.base + addedSum;
+        const diff = total - getInitialPoints(d.code);
+        return {code:d.code, name:d.name, team:d.team, base:d.base, diff, total};
       }).sort((a,b)=>b.total-a.total || a.code.localeCompare(b.code));
 
       const leaderTotal = driversArr.length ? driversArr[0].total : 0;
@@ -812,7 +838,7 @@ function rebuildEditor() {
                         </div>
                       </div>
                     </td>
-                    <td style='text-align:right'><b>${d.total} pts</b> <div class='small-note'>+${d.added}</div></td>
+                    <td style='text-align:right'><b>${d.total} pts</b> <div class='small-note'>${d.diff >= 0 ? '+'+d.diff : d.diff}</div></td>
                     <td style='text-align:right'><span class="small-note" data-stand-delta data-code="${d.code}" id="stand-delta-${d.code}">${delta}</span></td>
                   </tr>
                 `;
@@ -824,7 +850,11 @@ function rebuildEditor() {
       `;
       document.getElementById('driverStandings').innerHTML = html;
 
-      const consArr = Object.keys(cons).map(k=>({team:k, base:cons[k].base, added:cons[k].added, total:cons[k].total})).sort((a,b)=>b.total-a.total);
+      const consArr = Object.keys(cons).map(k=>{
+        const total = cons[k].total;
+        const diff = total - getInitialConstructorPoints(k);
+        return {team:k, diff, total};
+      }).sort((a,b)=>b.total-a.total);
       const consLeader = consArr.length ? consArr[0].total : 0;
 
       let html2 = `
@@ -848,7 +878,7 @@ function rebuildEditor() {
                           <div style="font-weight: 700; color: var(--text); font-size: 1.05em; white-space: nowrap;">${c.team}</div>
                         </div>
                       </td>
-                      <td style="text-align:right"><b>${Math.round(c.total)} pts</b> <div class='small-note'>+${Math.round(c.added)}</div></td>
+                      <td style="text-align:right"><b>${Math.round(c.total)} pts</b> <div class='small-note'>${c.diff >= 0 ? '+'+Math.round(c.diff) : Math.round(c.diff)}</div></td>
                       <td style="text-align:right"><span class="small-note" data-cons-delta data-team="${c.team}" id="cons-delta-${c.team.replace(/\s+/g,'_')}">${delta}</span></td>
                     </tr>
                   `;
