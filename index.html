@@ -112,6 +112,7 @@
     width: 90%; max-width: 420px; padding: 24px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 12px;
   }
   .modal-content h3 {
     margin-top: 0; margin-bottom: 12px;
@@ -182,7 +183,7 @@
 
   thead th { 
     background: var(--header-bg); color: var(--header-text); padding: 10px 12px; 
-    font-family: 'Montserrat', sans-serif; /* Upgraded Font */
+    font-family: 'Montserrat', sans-serif;
     font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
     position: sticky; top: 0; z-index: 5; white-space: nowrap; 
     border-bottom: 2px solid var(--border); vertical-align: middle;
@@ -281,7 +282,11 @@
 
             <div class="card" id="simCard" style="display: none;">
                 <div class="controls">
-                    <label>Simulation runs: <input type="number" id="simRuns" value="1000" min="100" max="10000"></label>
+                    <label style="display:flex; align-items:center; gap:6px;">
+                        Simulation runs: 
+                        <input type="number" id="simRuns" value="2000" style="width: 80px; padding: 6px; border-radius: 6px; border: 1px solid var(--border); font-weight:600; background: var(--card); color: var(--text);">
+                        <button class="btn secondary" id="infoBtn" style="padding: 4px 10px; font-weight: 800; border-radius: 50%;" title="What is this?">?</button>
+                    </label>
                     <button class="btn primary" id="runSimBtn">Run Simulation</button>
                 </div>
                 <div id="simStatus"></div>
@@ -310,6 +315,30 @@
       </div>
     </div>
 
+    <div id="warningModal" class="modal-overlay">
+      <div class="modal-content card">
+        <h3 style="color: #ef4444;">⚠️ Caution</h3>
+        <p>For best results and stability, please enter a value between <b>1,000 and 10,000</b> runs only.</p>
+        <div style="text-align: right;">
+          <button class="btn primary" id="closeWarningBtn">Got it</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="infoModal" class="modal-overlay">
+      <div class="modal-content card">
+        <h3 style="color: var(--accent);">ℹ️ Simulation Runs</h3>
+        <p>This setting determines how many "alternate futures" the Monte Carlo simulator calculates to determine probability.</p>
+        <ul style="color: var(--muted); padding-left: 20px; line-height: 1.5; margin-bottom: 24px;">
+            <li><b>Lower values (e.g. 1000):</b> Complete faster but provide less mathematically stable percentages.</li>
+            <li><b>Higher values (e.g. 10000):</b> Take longer to calculate but provide highly accurate probability curves.</li>
+        </ul>
+        <div style="text-align: right;">
+          <button class="btn primary" id="closeInfoBtn">Got it</button>
+        </div>
+      </div>
+    </div>
+
     <script>
     // --- constants
     const RACE_POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
@@ -317,37 +346,26 @@
 
     // --- base data
     const DRIVERS = [
-        // Red Bull
         {code:'VER', name:'Max Verstappen', team:'Red Bull', base:0},
         {code:'HAD', name:'Isack Hadjar', team:'Red Bull', base:0},
-        // McLaren  
         {code:'PIA', name:'Oscar Piastri', team:'McLaren', base:0},
         {code:'NOR', name:'Lando Norris', team:'McLaren', base:0},
-        // Mercedes
         {code:'RUS', name:'George Russell', team:'Mercedes', base:0},
         {code:'ANT', name:'Kimi Antonelli', team:'Mercedes', base:0},
-        // Ferrari
         {code:'LEC', name:'Charles Leclerc', team:'Ferrari', base:0},
         {code:'HAM', name:'Lewis Hamilton', team:'Ferrari', base:0},
-        // Williams
         {code:'ALB', name:'Alexander Albon', team:'Williams', base:0},
         {code:'SAI', name:'Carlos Sainz', team:'Williams', base:0},
-        // Racing Bulls
         {code:'LAW', name:'Liam Lawson', team:'Racing Bulls', base:0},
         {code:'LIN', name:'Arvid Lindblad', team:'Racing Bulls', base:0},
-        // Alpine
         {code:'GAS', name:'Pierre Gasly', team:'Alpine', base:0}, 
         {code:'COL', name:'Franco Colapinto', team:'Alpine', base:0},
-        // Haas
         {code:'OCO', name:'Esteban Ocon', team:'Haas', base:0},
         {code:'BEA', name:'Oliver Bearman', team:'Haas', base:0},
-        // Audi
         {code:'HUL', name:'Nico Hulkenberg', team:'Audi', base:0},
         {code:'BOR', name:'Gabriel Bortoleto', team:'Audi', base:0},
-        // Aston Martin
         {code:'ALO', name:'Fernando Alonso', team:'Aston Martin', base:0},
         {code:'STR', name:'Lance Stroll', team:'Aston Martin', base:0},
-        // Cadillac
         {code:'BOT', name:'Valterri Bottas', team:'Cadillac', base:0},
         {code:'PER', name:'Sergio Perez', team:'Cadillac', base:0}
       ].sort((a,b) => b.base - a.base);
@@ -355,10 +373,10 @@
     const CONSTRUCTORS = ['McLaren','Ferrari','Red Bull','Mercedes','Williams','Haas','Racing Bulls','Alpine','Audi','Aston Martin','Cadillac'];
 
     const EVENTS = [
-        {id:'australia', label:'AUS GP', type:'race', results: ['RUS','ANT','LEC','HAM','NOR','VER','BEA','LIN','BOR','GAS']},
+        {id:'australia', label:'AUS GP', type:'race', results: ['RUS','ANT','LEC','HAM','NOR','VER','BEA','LIN','BOR','GAS','OCO','ALB','LAW','COL','SAI','PER']},
         {id:'china-sprint', label:'CHN GP', type:'sprint', results: ['RUS','LEC','HAM','NOR','ANT','PIA','LAW','BEA']},
-        {id:'china-race', label:'CHN GP', type:'race', results: ['ANT','RUS','HAM','LEC','BEA','GAS','LAW','HAD','SAI','COL']},
-        {id:'japan', label:'JPN GP', type:'race', results: ['ANT','PIA','LEC','RUS','NOR','HAM','GAS','VER','LAW','OCO']},
+        {id:'china-race', label:'CHN GP', type:'race', results: ['ANT','RUS','HAM','LEC','BEA','GAS','LAW','HAD','SAI','COL','HUL','LIN','BOT','OCO','PER']},
+        {id:'japan', label:'JPN GP', type:'race', results: ['ANT','PIA','LEC','RUS','NOR','HAM','GAS','VER','LAW','OCO','HUL','HAD','BOR','LIN','SAI','COL','PER','ALO','BOT','ALB']},
         {id:'miami-sprint', label:'MIA GP', type:'sprint'},
         {id:'miami-race', label:'MIA GP', type:'race'},
         {id:'canada-sprint', label:'CAN GP', type:'sprint'},
@@ -440,40 +458,89 @@
       'uae':       '🇦🇪'
     };
 
-    // visible window state
-let visibleStart = 0;
-let PAGE_SIZE = 3; 
-
-function getVisibleEvents() {
-  return EVENTS.slice(visibleStart, visibleStart + PAGE_SIZE);
-}
-
-function prevPage() {
-  if (visibleStart === 0) return;
-  visibleStart = Math.max(0, visibleStart - PAGE_SIZE);
-  rebuildEditor();
-}
-
-function nextPage() {
-  if (visibleStart + PAGE_SIZE >= EVENTS.length) return;
-  visibleStart += PAGE_SIZE;
-  rebuildEditor();
-}
-
-function clearEvent(eventId) {
-  DRIVERS.forEach(d => {
-    if (state[d.code] && state[d.code].added) {
-      state[d.code].added[eventId] = 0;
+    // --- Helper Functions for Baseline & Deep Tie-Breakers ---
+    function getTieBreakerCounts(code, predictedAddedObj) {
+        // Creates an array of 22 positions (index 0 is P1, index 21 is P22)
+        const counts = new Array(22).fill(0);
+        EVENTS.forEach(ev => {
+            if (ev.type === 'race') {
+                if (ev.results) { 
+                    // Historical races: use the full hardcoded classified arrays
+                    const pos = ev.results.indexOf(code);
+                    if (pos !== -1) counts[pos]++;
+                } else {
+                    // Predicted races: only P1-P10 exist in Editor
+                    const pts = predictedAddedObj[ev.id] || 0;
+                    if (pts > 0) {
+                        const pos = RACE_POINTS.indexOf(pts);
+                        if (pos !== -1) counts[pos]++;
+                    }
+                }
+            }
+        });
+        return counts;
     }
-  });
-  rebuildEditor();
-}
 
-function rebuildEditor() {
-  buildTableHeader();
-  initEditor();
-  updateTotals();
-}
+    function compareTieBreaker(countsA, countsB) {
+        // Iterates through all 22 positions
+        for(let i=0; i<countsA.length; i++) {
+            if (countsA[i] !== countsB[i]) return countsB[i] - countsA[i];
+        }
+        return 0; 
+    }
+
+    function getInitialPoints(code) {
+        let pts = 0;
+        EVENTS.forEach(e => {
+            if (e.results) {
+                const pos = e.results.indexOf(code);
+                const pointsArr = e.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
+                if (pos !== -1 && pos < pointsArr.length) {
+                    pts += pointsArr[pos];
+                }
+            }
+        });
+        const base = DRIVERS.find(d => d.code === code)?.base || 0;
+        return base + pts;
+    }
+
+    function getInitialConstructorPoints(team) {
+        return DRIVERS.filter(d => d.team === team).reduce((sum, d) => sum + getInitialPoints(d.code), 0);
+    }
+
+    let visibleStart = 0;
+    let PAGE_SIZE = 3; 
+
+    function getVisibleEvents() {
+      return EVENTS.slice(visibleStart, visibleStart + PAGE_SIZE);
+    }
+
+    function prevPage() {
+      if (visibleStart === 0) return;
+      visibleStart = Math.max(0, visibleStart - PAGE_SIZE);
+      rebuildEditor();
+    }
+
+    function nextPage() {
+      if (visibleStart + PAGE_SIZE >= EVENTS.length) return;
+      visibleStart += PAGE_SIZE;
+      rebuildEditor();
+    }
+
+    function clearEvent(eventId) {
+      DRIVERS.forEach(d => {
+        if (state[d.code] && state[d.code].added) {
+          state[d.code].added[eventId] = 0;
+        }
+      });
+      rebuildEditor();
+    }
+
+    function rebuildEditor() {
+      buildTableHeader();
+      initEditor();
+      updateTotals();
+    }
 
     function getLogo(team){
       if (document?.body?.classList?.contains('dark-mode')) {
@@ -572,25 +639,6 @@ function rebuildEditor() {
     let state = {};
     let lastSimResult = null;
 
-    function getInitialPoints(code) {
-      let pts = 0;
-      EVENTS.forEach(e => {
-        if (e.results) {
-            const pos = e.results.indexOf(code);
-            const pointsArr = e.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
-            if (pos !== -1 && pos < pointsArr.length) {
-              pts += pointsArr[pos];
-            }
-          }
-      });
-      const base = DRIVERS.find(d => d.code === code)?.base || 0;
-      return base + pts;
-    }
-
-    function getInitialConstructorPoints(team) {
-      return DRIVERS.filter(d => d.team === team).reduce((sum, d) => sum + getInitialPoints(d.code), 0);
-    }
-
     function createRaceOptions(){
       const opts = [{v:'0',t:'0'}];
       for(let i=0;i<RACE_POINTS.length;i++) opts.push({v:RACE_POINTS[i].toString(), t:`P${i+1} (${RACE_POINTS[i]} pts)`});
@@ -644,11 +692,17 @@ function rebuildEditor() {
 
       const evs = getVisibleEvents();
       const driversArr = DRIVERS.map(d => {
-        const addedSum = Object.values(state[d.code]?.added || {}).reduce((a,b)=>a+b,0);
+        const addedObj = state[d.code]?.added || {};
+        const addedSum = Object.values(addedObj).reduce((a,b)=>a+b,0);
         const total = (state[d.code]?.base||d.base) + addedSum;
         const diff = total - getInitialPoints(d.code);
-        return { ...d, diff, total };
-      }).sort((a,b)=>b.total - a.total);
+        const counts = getTieBreakerCounts(d.code, addedObj);
+        return { ...d, diff, total, counts };
+      }).sort((a,b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        const tb = compareTieBreaker(a.counts, b.counts);
+        return tb !== 0 ? tb : a.code.localeCompare(b.code);
+      });
 
       const leaderTotal = driversArr[0]?.total || 0;
 
@@ -687,8 +741,7 @@ function rebuildEditor() {
           td.appendChild(sel);
           tr.appendChild(td);
         });
-        
-        // Safely calculate the delta string outside the template literal
+
         const deltaText = d.total === leaderTotal ? '—' : 
                           (d.total > leaderTotal ? '+' + (d.total - leaderTotal) : '-' + (leaderTotal - d.total));
 
@@ -781,7 +834,7 @@ function rebuildEditor() {
           const addedSum = Object.values(state[d.code].added || {}).reduce((a,b) => a+b, 0);
           const total = (state[d.code].base || 0) + addedSum;
           const diff = total - getInitialPoints(d.code);
-          
+
           const addedEl = document.getElementById('added-'+d.code);
           const totalEl = document.getElementById('total-'+d.code);
           if (addedEl) addedEl.innerText = diff >= 0 ? '+' + diff : diff;
@@ -797,21 +850,35 @@ function rebuildEditor() {
 
     function updateConstructorsAndDriversStandings(){
       const cons = {};
-      CONSTRUCTORS.forEach(c=> cons[c] = {base:0, added:0, total:0});
+      CONSTRUCTORS.forEach(c => cons[c] = { base:0, added:0, total:0, counts: new Array(22).fill(0) });
+      
       DRIVERS.forEach(d=>{
-        const addedSum = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
-        if(!cons[d.team]) cons[d.team] = {base:0, added:0, total:0};
+        const addedObj = state[d.code].added || {};
+        const addedSum = Object.values(addedObj).reduce((a,b)=>a+b,0);
+        const counts = getTieBreakerCounts(d.code, addedObj);
+        
+        if(!cons[d.team]) cons[d.team] = {base:0, added:0, total:0, counts: new Array(22).fill(0)};
         cons[d.team].base += d.base;
         cons[d.team].added += addedSum;
         cons[d.team].total += d.base + addedSum;
+        
+        for(let i=0; i<22; i++) {
+            cons[d.team].counts[i] += counts[i];
+        }
       });
 
       const driversArr = DRIVERS.map(d=>{
-        const addedSum = Object.values(state[d.code].added || {}).reduce((a,b)=>a+b,0);
+        const addedObj = state[d.code].added || {};
+        const addedSum = Object.values(addedObj).reduce((a,b)=>a+b,0);
         const total = d.base + addedSum;
         const diff = total - getInitialPoints(d.code);
-        return {code:d.code, name:d.name, team:d.team, base:d.base, diff, total};
-      }).sort((a,b)=>b.total-a.total || a.code.localeCompare(b.code));
+        const counts = getTieBreakerCounts(d.code, addedObj);
+        return {code:d.code, name:d.name, team:d.team, base:d.base, diff, total, counts};
+      }).sort((a,b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        const tb = compareTieBreaker(a.counts, b.counts);
+        return tb !== 0 ? tb : a.code.localeCompare(b.code);
+      });
 
       const leaderTotal = driversArr.length ? driversArr[0].total : 0;
 
@@ -851,10 +918,14 @@ function rebuildEditor() {
       document.getElementById('driverStandings').innerHTML = html;
 
       const consArr = Object.keys(cons).map(k=>{
-        const total = cons[k].total;
-        const diff = total - getInitialConstructorPoints(k);
-        return {team:k, diff, total};
-      }).sort((a,b)=>b.total-a.total);
+          const total = cons[k].total;
+          const diff = total - getInitialConstructorPoints(k);
+          return {team:k, diff, total, counts: cons[k].counts};
+      }).sort((a,b) => {
+          if (b.total !== a.total) return b.total - a.total;
+          return compareTieBreaker(a.counts, b.counts);
+      });
+      
       const consLeader = consArr.length ? consArr[0].total : 0;
 
       let html2 = `
@@ -1102,7 +1173,6 @@ function rebuildEditor() {
       });
 
       if (eventsToRandomize.length === 0) {
-        // Show custom modal instead of stock alert
         document.getElementById('alertModal').style.display = 'flex';
         return;
       }
@@ -1120,9 +1190,7 @@ function rebuildEditor() {
       rebuildEditor();
     }
 
-    function runMonteCarlo({ runs = 1000 } = {}) {
-      runs = Math.max(100, Math.min(20000, runs || 1000));
-
+    function runMonteCarlo({ runs = 2000 } = {}) {
       const driverCounts = {};
       DRIVERS.forEach(d => driverCounts[d.code] = {champ:0, top2:0, top3:0});
       const teamCounts = {};
@@ -1134,48 +1202,78 @@ function rebuildEditor() {
         return !DRIVERS.some(d => (savedState[d.code]?.added[ev.id] || 0) > 0);
       });
 
-      for (let i = 0; i < runs; i++) {
-        const simState = {};
-        DRIVERS.forEach(d => {
-          simState[d.code] = {
-            base: d.base,
-            added: JSON.parse(JSON.stringify(savedState[d.code]?.added || {}))
+      // Pre-calculate base stats to massively speed up the loop
+      const baseDriverData = {};
+      DRIVERS.forEach(d => {
+          baseDriverData[d.code] = {
+              base: d.base,
+              totalPts: d.base + Object.values(savedState[d.code]?.added || {}).reduce((a,b)=>a+b,0),
+              counts: getTieBreakerCounts(d.code, savedState[d.code]?.added || {})
           };
-        });
+      });
+
+      for (let i = 0; i < runs; i++) {
+        
+        // Setup initial driver objects for this specific run
+        const simDrivers = DRIVERS.map(d => ({
+            code: d.code,
+            team: d.team,
+            total: baseDriverData[d.code].totalPts,
+            counts: [...baseDriverData[d.code].counts] 
+        }));
+
+        const simMap = {};
+        simDrivers.forEach(d => simMap[d.code] = d);
 
         eventsToSimulate.forEach(ev => {
-          const points = ev.type === 'race' ? RACE_POINTS : SPRINT_POINTS;
           const codes = DRIVERS.map(d => d.code);
 
           const weights = codes.map(code => {
-            const totalSoFar = simState[code].base +
-                              Object.values(simState[code].added || {}).reduce((a, b) => a + b, 0);
-            return Math.pow(Math.max(totalSoFar, 0) + 10, 1.2); 
+            return Math.pow(Math.max(simMap[code].total, 0) + 10, 1.2); 
           });
 
+          // Order represents full 22-grid finish
           const order = weightedShuffle(codes, weights);
 
-          order.forEach((code, idx) => {
-            simState[code].added[ev.id] = points[idx] || 0;
-          });
+          if (ev.type === 'race') {
+              order.forEach((code, idx) => {
+                  const pts = RACE_POINTS[idx] || 0;
+                  simMap[code].total += pts;
+                  simMap[code].counts[idx]++; // Add to full 22 tie breaker
+              });
+          } else {
+              order.forEach((code, idx) => {
+                  const pts = SPRINT_POINTS[idx] || 0;
+                  simMap[code].total += pts;
+                  // Sprints do not count towards tie-breaker placements
+              });
+          }
         });
 
-        const final = DRIVERS.map(d => ({
-          code: d.code,
-          team: d.team,
-          total: simState[d.code].base + Object.values(simState[d.code].added || {}).reduce((a, b) => a + b, 0)
-        })).sort((a, b) => b.total - a.total);
+        // Compute simulated final totals
+        simDrivers.sort((a, b) => {
+          if (b.total !== a.total) return b.total - a.total;
+          return compareTieBreaker(a.counts, b.counts);
+        });
 
-        if (final[0]) driverCounts[final[0].code].champ++;
-        final.slice(0, 2).forEach(f => driverCounts[f.code].top2++);
-        final.slice(0, 3).forEach(f => driverCounts[f.code].top3++);
+        if (simDrivers[0]) driverCounts[simDrivers[0].code].champ++;
+        simDrivers.slice(0, 2).forEach(f => driverCounts[f.code].top2++);
+        simDrivers.slice(0, 3).forEach(f => driverCounts[f.code].top3++);
 
-        const consTotals = {};
-        CONSTRUCTORS.forEach(t => consTotals[t] = 0);
-        final.forEach(f => consTotals[f.team] += f.total);
-        const consArr = Object.keys(consTotals)
-          .map(t => ({team: t, total: consTotals[t]}))
-          .sort((a, b) => b.total - a.total);
+        const consMap = {};
+        CONSTRUCTORS.forEach(t => consMap[t] = { team: t, total: 0, counts: new Array(22).fill(0) });
+        
+        simDrivers.forEach(f => {
+            consMap[f.team].total += f.total;
+            for(let k=0; k<22; k++) {
+                consMap[f.team].counts[k] += f.counts[k];
+            }
+        });
+
+        const consArr = Object.values(consMap).sort((a, b) => {
+            if (b.total !== a.total) return b.total - a.total;
+            return compareTieBreaker(a.counts, b.counts);
+        });
 
         if (consArr[0]) teamCounts[consArr[0].team].champ++;
         consArr.slice(0, 2).forEach(c => teamCounts[c.team].top2++);
@@ -1240,18 +1338,20 @@ function rebuildEditor() {
       bindClick('randomBtn', () => randomize());
       
       // Close Modal logic
-      bindClick('closeModalBtn', () => {
-        document.getElementById('alertModal').style.display = 'none';
-      });
+      bindClick('closeModalBtn', () => { $('alertModal').style.display = 'none'; });
+      bindClick('closeWarningBtn', () => { $('warningModal').style.display = 'none'; });
+      bindClick('closeInfoBtn', () => { $('infoModal').style.display = 'none'; });
+      bindClick('infoBtn', () => { $('infoModal').style.display = 'flex'; });
 
       bindClick('runSimBtn', () => {
         const simRunsEl = $('simRuns');
-        const runs = Math.min(Math.max(parseInt(simRunsEl?.value) || 1000, 100), 10000);
-        runMonteCarlo({ runs });
+        const val = parseInt(simRunsEl.value);
+        if (isNaN(val) || val < 1000 || val > 10000) {
+            $('warningModal').style.display = 'flex';
+            return;
+        }
+        runMonteCarlo({ runs: val });
       });
-
-      const simRunsEl = $('simRuns');
-      if (simRunsEl) simRunsEl.addEventListener('input', function(e){ const value = parseInt(e.target.value); if (isNaN(value) || value < 100) e.target.value = 100; else if (value > 10000) e.target.value = 10000; });
 
       const darkBtn = $('darkModeBtn');
       if (darkBtn) {
