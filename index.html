@@ -72,12 +72,14 @@
     padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; 
     border: 1px solid var(--border); background: var(--card); color: var(--text); 
     transition: all 0.2s;
+    display: inline-flex; align-items: center; justify-content: center;
   }
   .btn.primary { 
     background: linear-gradient(90deg, var(--accent), var(--accent2)); 
     color: #fff; border: none; 
   }
-  .btn.primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn.primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .btn:disabled { cursor: not-allowed; opacity: 0.8; }
   
   .tabs { display: flex; gap: 6px; background: var(--surface); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
   .tab { padding: 8px 16px; border-radius: 6px; border: none; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
@@ -100,6 +102,44 @@
   .hdr-cell .hdr-flag { font-size: 26px; margin-top: 4px; line-height: 1; }
   .clear-btn { position: absolute; top: 0; right: 0; background: transparent; border: none; color: var(--header-text); opacity: 0.4; font-size: 16px; cursor: pointer; }
   .clear-btn:hover { opacity: 1; color: var(--accent); }
+
+  /* ===================== SPINNER ANIMATION ===================== */
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 0.8s ease-in-out infinite;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===================== LEGEND STYLES ===================== */
+  .legend-box {
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 10px;
+  }
+  .legend-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 800; color: var(--muted); margin-bottom: 12px;
+  }
+  .legend-grid {
+    display: flex; flex-wrap: wrap; gap: 16px 24px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted);
+  }
+  .legend-badge {
+    font-weight: 700; color: var(--text); background: var(--surface);
+    padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 11px;
+  }
+  .legend-badge.elim {
+    background: #ef4444; color: #fff; border: none;
+  }
 
   /* ===================== MODAL STYLES ===================== */
   .modal-overlay {
@@ -254,6 +294,7 @@
               <button class="tab" id="mobileStandingsTab">Standings</button>
             </div>
         </header>
+        
         <div class="layout">
             <div class="card" id="editorCard">
                 <div class="controls">
@@ -303,8 +344,23 @@
                 </div>
             </div>
         </div>
+
+        <!-- Legend Footer -->
+        <div class="legend-box">
+            <div class="legend-title">Legend & Terminology</div>
+            <div class="legend-grid">
+                <div class="legend-item"><span style="font-size:14px;">👑</span> Guaranteed Champion</div>
+                <div class="legend-item"><span class="legend-badge elim">ELIM</span> Mathematically Eliminated</div>
+                <div class="legend-item"><span class="legend-badge">—</span> Reference / Current Leader</div>
+                <div class="legend-item"><span class="legend-badge" style="color:#ef4444; border-color:#ef4444;">SPRINT</span> Sprint Event (Max 8 points)</div>
+                <div class="legend-item"><span class="legend-badge">CHAMP</span> Chance to win World Championship</div>
+                <div class="legend-item"><span class="legend-badge">TOP 2 / 3</span> Chance to finish in Top 2 or 3 overall</div>
+                <div class="legend-item"><span class="legend-badge">DELTA</span> Points behind/ahead of referenced driver</div>
+            </div>
+        </div>
     </div>
 
+    <!-- Modals -->
     <div id="alertModal" class="modal-overlay">
       <div class="modal-content card">
         <h3>Board Fully Predicted</h3>
@@ -458,18 +514,39 @@
       'uae':       '🇦🇪'
     };
 
-    // --- Helper Functions for Baseline & Deep Tie-Breakers ---
+    // --- Mathematical Elimination Engine ---
+    function getRemainingMaxPoints() {
+        let maxPts = 0;
+        EVENTS.forEach(ev => {
+            if (ev.results) return;
+            const isPredicted = DRIVERS.some(d => (state[d.code]?.added?.[ev.id] || 0) > 0);
+            if (isPredicted) return;
+            if (ev.type === 'race') maxPts += 25;
+            if (ev.type === 'sprint') maxPts += 8;
+        });
+        return maxPts;
+    }
+
+    function getRemainingMaxConstructorPoints() {
+        let maxPts = 0;
+        EVENTS.forEach(ev => {
+            if (ev.results) return;
+            const isPredicted = DRIVERS.some(d => (state[d.code]?.added?.[ev.id] || 0) > 0);
+            if (isPredicted) return;
+            if (ev.type === 'race') maxPts += 43; 
+            if (ev.type === 'sprint') maxPts += 15; 
+        });
+        return maxPts;
+    }
+
     function getTieBreakerCounts(code, predictedAddedObj) {
-        // Creates an array of 22 positions (index 0 is P1, index 21 is P22)
         const counts = new Array(22).fill(0);
         EVENTS.forEach(ev => {
             if (ev.type === 'race') {
                 if (ev.results) { 
-                    // Historical races: use the full hardcoded classified arrays
                     const pos = ev.results.indexOf(code);
                     if (pos !== -1) counts[pos]++;
                 } else {
-                    // Predicted races: only P1-P10 exist in Editor
                     const pts = predictedAddedObj[ev.id] || 0;
                     if (pts > 0) {
                         const pos = RACE_POINTS.indexOf(pts);
@@ -482,7 +559,6 @@
     }
 
     function compareTieBreaker(countsA, countsB) {
-        // Iterates through all 22 positions
         for(let i=0; i<countsA.length; i++) {
             if (countsA[i] !== countsB[i]) return countsB[i] - countsA[i];
         }
@@ -549,7 +625,9 @@
       return TEAM_LOGOS[team] || '';
     }
 
-    let deltaRef = null;
+    // Completely decoupled delta tracking variables
+    let driverDeltaRef = null;
+    let teamDeltaRef = null;
 
     function getDriverTotal(code){
       const base = state[code]?.base || DRIVERS.find(d=>d.code===code)?.base || 0;
@@ -563,76 +641,59 @@
     }
 
     function setDeltaReference(type, id){
-      if (deltaRef && deltaRef.type === type && deltaRef.id === id){
-        deltaRef = null;
-      } else {
-        deltaRef = {type, id};
-      }
-      refreshEditorDeltas();
-      refreshConstructorDeltas();
-      updateStandingsSelectionUI();
-    }
-
-    function updateStandingsSelectionUI(){
-      document.querySelectorAll('#driverStandings tr, #constructorStandings tr').forEach(tr=> tr.classList.remove('selected-row'));
-      if(!deltaRef) return;
-      if(deltaRef.type === 'driver'){
-        const el = document.querySelector(`#driverStandings tr[data-driver="${deltaRef.id}"]`);
-        if(el) el.classList.add('selected-row');
-      } else {
-        const key = CSS.escape(deltaRef.id);
-        const el = document.querySelector(`#constructorStandings tr[data-cons="${key}"]`);
-        if(el) el.classList.add('selected-row');
+      if (type === 'driver') {
+        if (driverDeltaRef === id) driverDeltaRef = null;
+        else driverDeltaRef = id;
+        refreshEditorDeltas();
+      } else if (type === 'team') {
+        if (teamDeltaRef === id) teamDeltaRef = null;
+        else teamDeltaRef = id;
+        refreshConstructorDeltas();
       }
     }
 
     function refreshEditorDeltas(){
       let refVal = null;
-      if(!deltaRef){
+      if(!driverDeltaRef){
         const totals = DRIVERS.map(d=> getDriverTotal(d.code));
         refVal = Math.max(...totals,0);
-      } else if(deltaRef.type === 'driver'){
-        refVal = getDriverTotal(deltaRef.id);
       } else {
-        refVal = getConstructorTotal(deltaRef.id);
+        refVal = getDriverTotal(driverDeltaRef);
       }
 
+      // Update Points Editor Table
       DRIVERS.forEach(d=>{
         const el = document.getElementById(`delta-${d.code}`);
         if(!el) return;
         const val = getDriverTotal(d.code) - refVal;
-        if(deltaRef && deltaRef.type==='team'){
-          el.innerText = val === 0 ? '—' : (val > 0 ? `+${val}` : `${val}`);
-        } else {
-          el.innerText = deltaRef && deltaRef.type==='driver' && d.code === deltaRef.id ? '—' :
-                        (!deltaRef && getDriverTotal(d.code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
-        }
+        el.innerText = driverDeltaRef === d.code ? '—' :
+                      (!driverDeltaRef && getDriverTotal(d.code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
       });
 
+      // Update Drivers Standings Table
       document.querySelectorAll('#driverStandings [data-stand-delta]').forEach(span=>{
         const code = span.dataset.code;
         const val = getDriverTotal(code) - refVal;
-        span.innerText = deltaRef && deltaRef.type==='driver' && code === deltaRef.id ? '—' :
-                        (!deltaRef && getDriverTotal(code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
+        span.innerText = driverDeltaRef === code ? '—' :
+                        (!driverDeltaRef && getDriverTotal(code) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
       });
     }
 
     function refreshConstructorDeltas(){
       let refVal = null;
-      if(!deltaRef){
+      if(!teamDeltaRef){
         const consTotals = CONSTRUCTORS.map(c=> getConstructorTotal(c));
         refVal = Math.max(...consTotals,0);
-      } else if(deltaRef.type === 'team'){
-        refVal = getConstructorTotal(deltaRef.id);
       } else {
-        refVal = getDriverTotal(deltaRef.id);
+        refVal = getConstructorTotal(teamDeltaRef);
       }
 
+      // Update Constructor Standings Table
       document.querySelectorAll('#constructorStandings [data-cons-delta]').forEach(span=>{
         const team = span.dataset.team;
         const val = getConstructorTotal(team) - refVal;
-        span.innerText = deltaRef && deltaRef.type==='team' && team === deltaRef.id ? '—' :
-                        (!deltaRef && getConstructorTotal(team) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
+        span.innerText = teamDeltaRef === team ? '—' :
+                        (!teamDeltaRef && getConstructorTotal(team) === refVal ? '—' : (val > 0 ? `+${val}` : `${val}`));
       });
     }
 
@@ -844,11 +905,13 @@
 
       try { refreshEditorDeltas(); } catch(e){ }
       try { refreshConstructorDeltas(); } catch(e){ }
-      try { updateStandingsSelectionUI(); } catch(e){ }
       try { updateDropdownLabels(); } catch(e){ }
     }
 
     function updateConstructorsAndDriversStandings(){
+      const maxRemaining = getRemainingMaxPoints();
+      const maxConsRemaining = getRemainingMaxConstructorPoints();
+
       const cons = {};
       CONSTRUCTORS.forEach(c => cons[c] = { base:0, added:0, total:0, counts: new Array(22).fill(0) });
       
@@ -881,6 +944,14 @@
       });
 
       const leaderTotal = driversArr.length ? driversArr[0].total : 0;
+      const secondTotal = driversArr.length > 1 ? driversArr[1].total : 0;
+      const isDriverChampLocked = (secondTotal + maxRemaining) < leaderTotal;
+
+      // Mathematical Elimination Check for Drivers
+      driversArr.forEach((d, index) => {
+          d.isEliminated = (d.total + maxRemaining) < leaderTotal;
+          d.isChampion = index === 0 && isDriverChampLocked;
+      });
 
       let html = `
         <div style="margin-bottom:18px; width: 100%; max-width: 420px;">
@@ -890,23 +961,26 @@
               <thead>
                 <tr><th style="width:1%">Pos</th><th>Driver</th><th style="text-align:right">Total</th><th style="text-align:right">Delta</th></tr>
               </thead>
-              <tbody>
+              <tbody id="driverStandingsBody">
                 ${driversArr.map((d,i)=>{
                   const delta = d.total === leaderTotal ? '—' : (d.total>leaderTotal? `+${d.total-leaderTotal}` : `-${leaderTotal - d.total}`);
+                  const elimBadge = d.isEliminated ? ' <span class="legend-badge elim" style="margin-left:4px;">ELIM</span>' : '';
+                  const crown = d.isChampion ? ' <span title="Guaranteed Champion" style="font-size:14px; margin-left:4px; vertical-align:middle;">👑</span>' : '';
+                  const rowOpacity = d.isEliminated ? 'style="opacity:0.55;"' : '';
                   return `
-                  <tr data-driver="${d.code}" onclick="setDeltaReference('driver','${d.code.replace(/'/g,"\\'")}')">
+                  <tr data-driver="${d.code}" onclick="setDeltaReference('driver','${d.code.replace(/'/g,"\\'")}')" ${rowOpacity}>
                     <td style="text-align:center;">${i+1}</td>
                     <td>
                       <div style="display: flex; align-items: center; gap: 10px;">
                         <img src="${getLogo(d.team)}" alt="${d.team}" style="height: 24px; width: 24px; margin: 0; object-fit: contain;">
                         <div style="line-height: 1.2;">
-                          <div style="font-weight: 700; color: var(--text); font-size: 1.05em;">${d.code}</div>
+                          <div style="font-weight: 700; color: var(--text); font-size: 1.05em;">${d.code}${elimBadge}${crown}</div>
                           <div style="font-size: 0.85em; color: var(--muted); margin-top: 2px;">${d.team}</div>
                         </div>
                       </div>
                     </td>
                     <td style='text-align:right'><b>${d.total} pts</b> <div class='small-note'>${d.diff >= 0 ? '+'+d.diff : d.diff}</div></td>
-                    <td style='text-align:right'><span class="small-note" data-stand-delta data-code="${d.code}" id="stand-delta-${d.code}">${delta}</span></td>
+                    <td style='text-align:right'><span class="small-note" data-stand-delta data-code="${d.code}" id="stand-delta-${d.code}">—</span></td>
                   </tr>
                 `;
                 }).join('')}
@@ -927,6 +1001,14 @@
       });
       
       const consLeader = consArr.length ? consArr[0].total : 0;
+      const secondConsTotal = consArr.length > 1 ? consArr[1].total : 0;
+      const isConsChampLocked = (secondConsTotal + maxConsRemaining) < consLeader;
+
+      // Mathematical Elimination Check for Constructors
+      consArr.forEach((c, index) => {
+          c.isEliminated = (c.total + maxConsRemaining) < consLeader;
+          c.isChampion = index === 0 && isConsChampLocked;
+      });
 
       let html2 = `
         <div style="margin-bottom:18px; width: 100%; max-width: 420px;">
@@ -936,21 +1018,24 @@
               <thead>
                 <tr><th style="width:1%">Pos</th><th>Constructor</th><th style="text-align:right">Total</th><th style="text-align:right">Delta</th></tr>
               </thead>
-              <tbody>
+              <tbody id="constructorStandingsBody">
                 ${consArr.map((c,i)=>{
                   const delta = c.total === consLeader ? '—' : (c.total>consLeader? `+${c.total-consLeader}` : `-${consLeader - c.total}`);
                   const safeTeam = c.team.replace(/"/g,'&quot;');
+                  const elimBadge = c.isEliminated ? ' <span class="legend-badge elim" style="margin-left:4px;">ELIM</span>' : '';
+                  const crown = c.isChampion ? ' <span title="Guaranteed Champion" style="font-size:14px; margin-left:4px; vertical-align:middle;">👑</span>' : '';
+                  const rowOpacity = c.isEliminated ? 'style="opacity:0.55;"' : '';
                   return `
-                    <tr data-cons="${safeTeam}" onclick="setDeltaReference('team','${safeTeam.replace(/'/g,"\\'")}')">
+                    <tr data-cons="${safeTeam}" onclick="setDeltaReference('team','${c.team.replace(/'/g,"\\'")}')" ${rowOpacity}>
                       <td style="text-align:center;">${i+1}</td>
                       <td>
                         <div style="display: flex; align-items: center; gap: 10px;">
                           <img src="${getLogo(c.team)}" alt="${c.team}" style="height: 24px; width: 24px; margin: 0; object-fit: contain;">
-                          <div style="font-weight: 700; color: var(--text); font-size: 1.05em; white-space: nowrap;">${c.team}</div>
+                          <div style="font-weight: 700; color: var(--text); font-size: 1.05em; white-space: nowrap;">${c.team}${elimBadge}${crown}</div>
                         </div>
                       </td>
                       <td style="text-align:right"><b>${Math.round(c.total)} pts</b> <div class='small-note'>${c.diff >= 0 ? '+'+Math.round(c.diff) : Math.round(c.diff)}</div></td>
-                      <td style="text-align:right"><span class="small-note" data-cons-delta data-team="${c.team}" id="cons-delta-${c.team.replace(/\s+/g,'_')}">${delta}</span></td>
+                      <td style="text-align:right"><span class="small-note" data-cons-delta data-team="${c.team}" id="cons-delta-${c.team.replace(/\s+/g,'_')}">—</span></td>
                     </tr>
                   `;
                 }).join('')}
@@ -966,6 +1051,19 @@
       if (!lastSimResult) return;
       const ds = lastSimResult.driverStats;
       const ts = lastSimResult.teamStats;
+      const maxRemaining = getRemainingMaxPoints();
+      const maxConsRemaining = getRemainingMaxConstructorPoints();
+
+      // Find current state totals to correctly flag live mathematical locks in render
+      const liveDriverTotals = DRIVERS.map(d => d.base + Object.values(state[d.code].added || {}).reduce((a, b) => a + b, 0)).sort((a,b)=>b-a);
+      const currentLeaderTotal = liveDriverTotals[0] || 0;
+      const currentSecondTotal = liveDriverTotals[1] || 0;
+      const isDriverChampLocked = (currentSecondTotal + maxRemaining) < currentLeaderTotal;
+
+      const liveConsTotals = CONSTRUCTORS.map(t => DRIVERS.filter(d => d.team === t).reduce((sum, d) => sum + d.base + Object.values(state[d.code].added || {}).reduce((a, b) => a + b, 0), 0)).sort((a,b)=>b-a);
+      const currentConsLeaderTotal = liveConsTotals[0] || 0;
+      const currentConsSecondTotal = liveConsTotals[1] || 0;
+      const isConsChampLocked = (currentConsSecondTotal + maxConsRemaining) < currentConsLeaderTotal;
 
       let html = `<div class="standings-flex">`;
 
@@ -997,14 +1095,25 @@
           pts: d.base + added,
           stats: ds[d.code] || { champ: 0, top2: 0, top3: 0 }
         };
-      }).sort((a, b) => b.stats.champ - a.stats.champ);
+      }).sort((a, b) => {
+          if (b.stats.champ !== a.stats.champ) return b.stats.champ - a.stats.champ;
+          if (b.stats.top2 !== a.stats.top2) return b.stats.top2 - a.stats.top2;
+          if (b.stats.top3 !== a.stats.top3) return b.stats.top3 - a.stats.top3;
+          return b.pts - a.pts; 
+      });
 
-      driversWithPts.forEach(d => {
+      driversWithPts.forEach((d, index) => {
+        const isEliminated = (d.pts + maxRemaining) < currentLeaderTotal;
+        const isChamp = isDriverChampLocked && index === 0;
+        const elimBadge = isEliminated ? ' <span class="legend-badge elim" style="margin-left:4px;">ELIM</span>' : '';
+        const crown = isChamp ? ' <span title="Guaranteed Champion" style="font-size:14px; margin-left:4px; vertical-align:middle;">👑</span>' : '';
+        const rowOpacity = isEliminated ? 'style="opacity:0.55;"' : '';
+        
         html += `
-          <tr>
+          <tr ${rowOpacity}>
             <td>
               <img src="${getLogo(d.team)}" alt="${d.team}" style="height:16px;vertical-align:middle;margin-right:4px;">
-              ${d.code}
+              ${d.code}${elimBadge}${crown}
             </td>
             <td style="color:var(--muted);">${d.team}</td>
             <td style="text-align:center; font-weight:700; color:var(--text);">${d.stats.champ.toFixed(1)}%</td>
@@ -1035,15 +1144,29 @@
       `;
 
       const consWithPts = Object.keys(ts)
-        .map(t => ({ team: t, stats: ts[t] }))
-        .sort((a, b) => b.stats.champ - a.stats.champ);
+        .map(t => {
+            const teamPts = DRIVERS.filter(d => d.team === t).reduce((sum, d) => sum + d.base + Object.values(state[d.code].added || {}).reduce((a, b) => a + b, 0), 0);
+            return { team: t, pts: teamPts, stats: ts[t] };
+        })
+        .sort((a, b) => {
+            if (b.stats.champ !== a.stats.champ) return b.stats.champ - a.stats.champ;
+            if (b.stats.top2 !== a.stats.top2) return b.stats.top2 - a.stats.top2;
+            if (b.stats.top3 !== a.stats.top3) return b.stats.top3 - a.stats.top3;
+            return b.pts - a.pts; 
+        });
 
-      consWithPts.forEach(c => {
+      consWithPts.forEach((c, index) => {
+        const isEliminated = (c.pts + maxConsRemaining) < currentConsLeaderTotal;
+        const isChamp = isConsChampLocked && index === 0;
+        const elimBadge = isEliminated ? ' <span class="legend-badge elim" style="margin-left:4px;">ELIM</span>' : '';
+        const crown = isChamp ? ' <span title="Guaranteed Champion" style="font-size:14px; margin-left:4px; vertical-align:middle;">👑</span>' : '';
+        const rowOpacity = isEliminated ? 'style="opacity:0.55;"' : '';
+
         html += `
-          <tr>
+          <tr ${rowOpacity}>
             <td>
               <img src="${getLogo(c.team)}" alt="${c.team}" style="height:18px;vertical-align:middle;margin-right:4px;">
-              ${c.team}
+              ${c.team}${elimBadge}${crown}
             </td>
             <td style="text-align:center; font-weight:700; color:var(--text);">${c.stats.champ.toFixed(1)}%</td>
             <td style="text-align:center;">${c.stats.top2.toFixed(1)}%</td>
@@ -1202,7 +1325,6 @@
         return !DRIVERS.some(d => (savedState[d.code]?.added[ev.id] || 0) > 0);
       });
 
-      // Pre-calculate base stats to massively speed up the loop
       const baseDriverData = {};
       DRIVERS.forEach(d => {
           baseDriverData[d.code] = {
@@ -1213,8 +1335,6 @@
       });
 
       for (let i = 0; i < runs; i++) {
-        
-        // Setup initial driver objects for this specific run
         const simDrivers = DRIVERS.map(d => ({
             code: d.code,
             team: d.team,
@@ -1225,32 +1345,37 @@
         const simMap = {};
         simDrivers.forEach(d => simMap[d.code] = d);
 
+        const timelineWeights = {};
+        DRIVERS.forEach(d => {
+            let form = Math.max(baseDriverData[d.code].totalPts, 0) + 15; 
+            let swing = Math.pow(Math.random(), 3) * 15; 
+            timelineWeights[d.code] = form * swing;
+        });
+
         eventsToSimulate.forEach(ev => {
           const codes = DRIVERS.map(d => d.code);
 
           const weights = codes.map(code => {
-            return Math.pow(Math.max(simMap[code].total, 0) + 10, 1.2); 
+            const raceLuck = Math.random(); 
+            return timelineWeights[code] * raceLuck; 
           });
 
-          // Order represents full 22-grid finish
           const order = weightedShuffle(codes, weights);
 
           if (ev.type === 'race') {
               order.forEach((code, idx) => {
                   const pts = RACE_POINTS[idx] || 0;
                   simMap[code].total += pts;
-                  simMap[code].counts[idx]++; // Add to full 22 tie breaker
+                  simMap[code].counts[idx]++; 
               });
           } else {
               order.forEach((code, idx) => {
                   const pts = SPRINT_POINTS[idx] || 0;
                   simMap[code].total += pts;
-                  // Sprints do not count towards tie-breaker placements
               });
           }
         });
 
-        // Compute simulated final totals
         simDrivers.sort((a, b) => {
           if (b.total !== a.total) return b.total - a.total;
           return compareTieBreaker(a.counts, b.counts);
@@ -1337,7 +1462,6 @@
       bindClick('resetBtn', typeof resetAll === 'function' ? resetAll : () => { initializeState(); buildTableHeader(); initEditor(); updateTotals(); });
       bindClick('randomBtn', () => randomize());
       
-      // Close Modal logic
       bindClick('closeModalBtn', () => { $('alertModal').style.display = 'none'; });
       bindClick('closeWarningBtn', () => { $('warningModal').style.display = 'none'; });
       bindClick('closeInfoBtn', () => { $('infoModal').style.display = 'none'; });
@@ -1350,7 +1474,17 @@
             $('warningModal').style.display = 'flex';
             return;
         }
-        runMonteCarlo({ runs: val });
+
+        const btn = $('runSimBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<span class="spinner"></span> Simulating ${val} runs...`;
+        btn.disabled = true;
+
+        setTimeout(() => {
+            runMonteCarlo({ runs: val });
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 60); 
       });
 
       const darkBtn = $('darkModeBtn');
